@@ -5,22 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ULTRA NEON SURVIVOR</title>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; user-select: none; -webkit-user-select: none; touch-action: none; }
+        /* touch-action: none previne o zoom de "pinça" e rolagens indesejadas */
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; background: #000; color: #fff; 
+            font-family: 'Segoe UI', sans-serif; overflow: hidden; 
+            user-select: none; -webkit-user-select: none; touch-action: none; 
+        }
+        
         canvas { 
             display: block; 
-            width: 100vw; 
-            height: 100vh; 
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; 
+            height: 100%; 
         }
         
         /* Aviso para girar o celular */
         #rotate-warning {
-            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; color: #ff0055; z-index: 10000; align-items: center; justify-content: center;
             text-align: center; font-size: 24px; font-weight: bold; text-transform: uppercase; flex-direction: column;
         }
         #rotate-warning span { font-size: 50px; margin-bottom: 20px; }
 
-        /* Esconde o jogo e mostra o aviso se estiver no modo celular e com tela em pé (portrait) */
         @media screen and (orientation: portrait) {
             body.mobile-playing #rotate-warning { display: flex; }
             body.mobile-playing canvas, body.mobile-playing #ui, body.mobile-playing #mobile-ui { display: none !important; }
@@ -57,7 +64,7 @@
 
         /* Telas de Menu e Loja */
         .screen {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); z-index: 20;
         }
@@ -78,42 +85,41 @@
         .credits { position: absolute; bottom: 20px; font-size: 12px; color: #555; letter-spacing: 3px; text-align: center; width: 100%;}
         .credits span { color: #0ff; font-weight: bold; text-shadow: 0 0 5px #0ff; }
         
-        .shop-item { margin: 10px 0; display: flex; align-items: center; justify-content: space-between; gap: 15px; width: 100%; max-width: 400px;}
-        .shop-item button { padding: 10px 15px; font-size: 12px; cursor: pointer; background: #222; color: #fff; border: 1px solid #555; transition: 0.2s;}
+        /* Container da loja com scroll para caber tudo */
+        .shop-container {
+            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; 
+            margin-top: 15px; width: 90%; max-width: 450px;
+            max-height: 50vh; overflow-y: auto; overflow-x: hidden;
+        }
+        
+        .shop-item { margin: 8px 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;}
+        .shop-item span { font-size: 14px; }
+        .shop-item button { padding: 8px 12px; font-size: 11px; cursor: pointer; background: #222; color: #fff; border: 1px solid #555; transition: 0.2s;}
         .shop-item button:hover, .shop-item button:active { border-color: #fff; }
-        .shop-item button:disabled { opacity: 0.5; cursor: not-allowed; }
         
         #shop-screen { display: none; }
 
-        /* --- AJUSTES RESPONSIVOS PARA CELULAR NA HORIZONTAL --- */
+        /* Ajustes responsivos para celular na horizontal */
         @media screen and (max-height: 500px) {
-            /* Diminui os títulos e subtítulos */
-            h1 { font-size: clamp(20px, 6vw, 35px); margin-bottom: 5px; }
+            h1 { font-size: clamp(20px, 6vw, 30px); margin-bottom: 5px; }
             #main-menu p:not(.credits) { margin-bottom: 5px !important; font-size: 12px; }
-            
-            /* Aperta os botões para caberem na tela */
             .btn-container { margin-top: 5px; gap: 10px; }
             .btn { padding: 8px 15px; font-size: 12px; }
             .btn-shop { margin-top: 10px !important; }
-            
-            /* Tira os créditos do fundo fixo para não sobrepor os botões */
-            .credits { position: relative; bottom: 0; margin-top: 15px; font-size: 10px; }
-            
-            /* Ajustes da Loja para não cortar os itens */
-            h2 { font-size: 18px; margin-bottom: 5px; margin-top: 10px; }
-            #shop-screen p { font-size: 14px !important; margin: 5px 0; }
-            #shop-screen > div { padding: 10px; margin-top: 5px; width: 95%; }
-            .shop-item { margin: 5px 0; gap: 5px; font-size: 12px; }
-            .shop-item button { padding: 5px 10px; font-size: 10px; }
-            #shop-screen .btn { margin-top: 15px !important; }
+            .credits { position: relative; bottom: 0; margin-top: 10px; font-size: 10px; }
+            h2 { font-size: 16px; margin-bottom: 5px; margin-top: 5px; }
+            #shop-screen p { font-size: 12px !important; margin: 2px 0; }
+            .shop-container { padding: 10px; margin-top: 5px; max-height: 55vh; }
+            .shop-item { margin: 4px 0; }
+            .shop-item span { font-size: 12px; }
+            .shop-item button { padding: 5px 8px; font-size: 10px; }
+            #shop-screen .btn { margin-top: 10px !important; padding: 8px 15px; font-size: 12px; }
         }
     </style>
 </head>
 <body>
 
-    <audio id="bg-music" loop>
-        <source src="funk.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="bg-music" loop></audio>
 
     <div id="rotate-warning">
         <span>🔄</span>
@@ -135,24 +141,19 @@
 
     <div id="shop-screen" class="screen">
         <h2>ÁREA DE DESBLOQUEIO</h2>
-        <p style="font-size: 20px;">Neon Coins: <span id="coin-display" style="color:#ffcc00; font-weight:bold;">0</span></p>
+        <p style="font-size: 18px;">Neon Coins: <span id="coin-display" style="color:#ffcc00; font-weight:bold;">0</span></p>
         
-        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-top: 20px; width: 90%; max-width: 400px;">
-            <div class="shop-item">
-                <span style="color: #ff0055; flex: 1;">Cor: Rosa Chocante (50)</span>
-                <button id="btn-color-pink" onclick="buyItem('color', '#ff0055', 50, 'btn-color-pink')">COMPRAR</button>
-            </div>
-            <div class="shop-item">
-                <span style="color: #00ff00; flex: 1;">Cor: Verde Tóxico (100)</span>
-                <button id="btn-color-green" onclick="buyItem('color', '#00ff00', 100, 'btn-color-green')">COMPRAR</button>
-            </div>
-            <div class="shop-item">
-                <span style="color: #aaa; flex: 1;">Mapa: Cyber Grid (200)</span>
-                <button id="btn-map-grid" onclick="buyItem('map', 'grid', 200, 'btn-map-grid')">COMPRAR</button>
-            </div>
+        <div class="shop-container">
+            <div class="shop-item"><span style="color: #ff0055; flex: 1;">Cor: Rosa Chocante (50)</span><button id="btn-color-pink" onclick="buyItem('color', '#ff0055', 50, 'btn-color-pink')">COMPRAR</button></div>
+            <div class="shop-item"><span style="color: #00ff00; flex: 1;">Cor: Verde Tóxico (100)</span><button id="btn-color-green" onclick="buyItem('color', '#00ff00', 100, 'btn-color-green')">COMPRAR</button></div>
+            <div class="shop-item"><span style="color: #aaa; flex: 1;">Mapa: Cyber Grid (200)</span><button id="btn-map-grid" onclick="buyItem('map', 'grid', 200, 'btn-map-grid')">COMPRAR</button></div>
+            <hr style="border-color: #333; margin: 10px 0;">
+            <div class="shop-item"><span style="color: #ff9900; flex: 1;">Música: Funk (Grátis)</span><button id="btn-music-funk" onclick="buyItem('music', 'funk.mp3', 0, 'btn-music-funk')">EQUIPAR</button></div>
+            <div class="shop-item"><span style="color: #ff9900; flex: 1;">Música: Eletrônica (150)</span><button id="btn-music-eletro" onclick="buyItem('music', 'eletronica.mp3', 150, 'btn-music-eletro')">COMPRAR</button></div>
+            <div class="shop-item"><span style="color: #ff9900; flex: 1;">Música: Rock (300)</span><button id="btn-music-rock" onclick="buyItem('music', 'rock.mp3', 300, 'btn-music-rock')">COMPRAR</button></div>
         </div>
 
-        <button class="btn" style="margin-top: 30px; font-size: 14px;" onclick="closeShop()">VOLTAR AO MENU</button>
+        <button class="btn" style="margin-top: 20px;" onclick="closeShop()">VOLTAR AO MENU</button>
     </div>
 
     <div id="ui">
@@ -173,6 +174,10 @@
     <canvas id="game"></canvas>
 
 <script>
+// --- ANTI-ZOOM PARA iPHONE (SAFARI iOS) ---
+document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+document.addEventListener('touchmove', function(e) { if(e.scale !== 1) { e.preventDefault(); } }, {passive: false});
+
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const ui = document.getElementById('ui');
@@ -183,54 +188,53 @@ const shootBtn = document.getElementById('shoot-btn');
 const mainMenu = document.getElementById('main-menu');
 const shopScreen = document.getElementById('shop-screen');
 const coinDisplay = document.getElementById('coin-display');
-const bgMusic = document.getElementById('bg-music'); // Áudio do jogo
+const bgMusic = document.getElementById('bg-music');
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-// --- SISTEMA DE SAVE ---
+// --- SISTEMA DE SAVE ATUALIZADO (Com Músicas) ---
 let saveData = JSON.parse(localStorage.getItem('ultraNeonSave')) || {
-    coins: 0, unlockedColors: ['#0ff'], unlockedMaps: ['default'], currentColor: '#0ff', currentMap: 'default'
+    coins: 0, 
+    unlockedColors: ['#0ff'], currentColor: '#0ff', 
+    unlockedMaps: ['default'], currentMap: 'default',
+    unlockedMusic: ['funk.mp3'], currentMusic: 'funk.mp3'
 };
+// Garante que se o save antigo não tiver música, ele cria agora
+if(!saveData.unlockedMusic) { saveData.unlockedMusic = ['funk.mp3']; saveData.currentMusic = 'funk.mp3'; }
+
 function saveGame() { localStorage.setItem('ultraNeonSave', JSON.stringify(saveData)); }
 
-// Variáveis do Jogo
 let gameState = 'MENU';
 let isMobile = false;
-let player = { x: canvas.width/2, y: canvas.height/2, size: 12, speed: 4, level: 1, xp: 0, nextLvl: 10, dashing: 0 };
+let player = { x: 0, y: 0, size: 12, speed: 4, level: 1, xp: 0, nextLvl: 10, dashing: 0 };
 let projectiles = [], enemies = [], particles = [], collectibles = [], shake = 0, kills = 0, keys = {};
 let mouse = { x: 0, y: 0 };
 let isShootingMobile = false;
 let autoShootTimer = 0;
-
-// Variáveis do Joystick Virtual (Mobile)
 let joystick = { active: false, id: null, startX: 0, startY: 0, currentX: 0, currentY: 0, dx: 0, dy: 0, maxRadius: 50 };
-let joystickVisualBase = { x: 100, y: window.innerHeight - 100 };
+let joystickVisualBase = { x: 100, y: 0 };
 
-// --- CONTROLES PC ---
+// Controles PC
 window.onkeydown = e => keys[e.code] = true;
 window.onkeyup = e => keys[e.code] = false;
 window.onmousemove = e => { mouse.x = e.clientX; mouse.y = e.clientY; };
 window.onmousedown = () => { if(gameState === 'PLAYING' && !isMobile) shoot(mouse.x, mouse.y); };
 
-// --- FUNÇÃO PARA AJUSTAR A TELA ---
+// Ajuste de Tela
 function ajustarTela() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     joystickVisualBase.y = window.innerHeight - 100;
 }
-
 window.addEventListener('resize', ajustarTela);
 window.addEventListener('orientationchange', () => { setTimeout(ajustarTela, 200); });
+ajustarTela(); // Chama logo no começo
 
-// --- CONTROLES MOBILE (Movimentação) ---
+// Controles Mobile
 canvas.addEventListener('touchstart', e => {
     if (gameState !== 'PLAYING' || !isMobile) return;
     for(let i=0; i<e.changedTouches.length; i++) {
         let t = e.changedTouches[i];
         if(t.clientX < canvas.width / 2 && !joystick.active) {
-            joystick.active = true;
-            joystick.id = t.identifier;
+            joystick.active = true; joystick.id = t.identifier;
             joystick.startX = t.clientX; joystick.startY = t.clientY;
             joystick.currentX = t.clientX; joystick.currentY = t.clientY;
             joystick.dx = 0; joystick.dy = 0;
@@ -254,9 +258,7 @@ canvas.addEventListener('touchmove', e => {
     }
 });
 canvas.addEventListener('touchend', e => {
-    for(let i=0; i<e.changedTouches.length; i++) {
-        if(e.changedTouches[i].identifier === joystick.id) { joystick.active = false; joystick.dx = 0; joystick.dy = 0; }
-    }
+    for(let i=0; i<e.changedTouches.length; i++) { if(e.changedTouches[i].identifier === joystick.id) { joystick.active = false; joystick.dx = 0; joystick.dy = 0; } }
 });
 canvas.addEventListener('touchcancel', () => { joystick.active = false; joystick.dx = 0; joystick.dy = 0; });
 
@@ -265,38 +267,41 @@ shootBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if (gameSta
 shootBtn.addEventListener('touchend', (e) => { e.preventDefault(); isShootingMobile = false; });
 shootBtn.addEventListener('touchcancel', (e) => { e.preventDefault(); isShootingMobile = false; });
 
-// --- FUNÇÕES DE MENU E LOJA ---
+// --- FUNÇÕES GERAIS E MÚSICA ---
 function startGame(mobileMode) {
     isMobile = mobileMode;
     gameState = 'PLAYING';
     mainMenu.style.display = 'none';
     ui.style.display = 'block';
 
+    // Toca a música escolhida (funciona no PC agora porque é forçado no click)
+    bgMusic.src = saveData.currentMusic;
     bgMusic.volume = 0.5;
-    bgMusic.play().catch(e => console.log("Aguarde interação para tocar a música."));
+    bgMusic.load();
+    let playPromise = bgMusic.play();
+    if (playPromise !== undefined) {
+        playPromise.catch(error => console.log("Áudio bloqueado pelo navegador."));
+    }
 
     if (isMobile) {
         document.body.classList.add('mobile-playing'); 
         pcInstructions.style.display = 'none';
         mobileUI.style.display = 'block';
 
+        // Tenta Fullscreen (O iPhone vai ignorar isso e tudo bem, não vai quebrar)
         let elem = document.documentElement;
         if (elem.requestFullscreen) {
             elem.requestFullscreen().then(() => {
-                if(screen.orientation && screen.orientation.lock) {
-                    screen.orientation.lock('landscape').catch(err => console.log("Bloqueio de tela não suportado"));
-                }
-                setTimeout(ajustarTela, 300);
-            }).catch(err => console.log("Erro no fullscreen", err));
+                if(screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(e => {});
+            }).catch(e => {});
         }
-
     } else {
         document.body.classList.remove('mobile-playing');
         pcInstructions.style.display = 'block';
         mobileUI.style.display = 'none';
-        ajustarTela();
     }
     
+    ajustarTela();
     player = { x: canvas.width/2, y: canvas.height/2, size: 12, speed: 4, level: 1, xp: 0, nextLvl: 10, dashing: 0 };
     projectiles = []; enemies = []; particles = []; collectibles = [];
     kills = 0; document.getElementById('kills').innerText = kills;
@@ -311,9 +316,10 @@ function gameOver() {
     document.body.classList.remove('mobile-playing');
     bgMusic.pause(); 
     saveData.coins += kills; saveGame(); isShootingMobile = false;
-    if (document.fullscreenElement) { document.exitFullscreen(); } 
+    if (document.fullscreenElement) { document.exitFullscreen().catch(e => {}); } 
 }
 
+// --- LOJA ---
 function openShop() { mainMenu.style.display = 'none'; shopScreen.style.display = 'flex'; updateShopUI(); }
 function closeShop() { shopScreen.style.display = 'none'; mainMenu.style.display = 'flex'; }
 
@@ -322,51 +328,59 @@ function updateShopUI() {
     checkButtonState('color', '#ff0055', 'btn-color-pink');
     checkButtonState('color', '#00ff00', 'btn-color-green');
     checkButtonState('map', 'grid', 'btn-map-grid');
+    checkButtonState('music', 'funk.mp3', 'btn-music-funk');
+    checkButtonState('music', 'eletronica.mp3', 'btn-music-eletro');
+    checkButtonState('music', 'rock.mp3', 'btn-music-rock');
 }
 
 function checkButtonState(type, value, btnId) {
     const btn = document.getElementById(btnId);
-    let unlocked = type === 'color' ? saveData.unlockedColors.includes(value) : saveData.unlockedMaps.includes(value);
-    let equipped = type === 'color' ? saveData.currentColor === value : saveData.currentMap === value;
+    let unlocked = false, equipped = false;
+    
+    if (type === 'color') { unlocked = saveData.unlockedColors.includes(value); equipped = saveData.currentColor === value; }
+    if (type === 'map') { unlocked = saveData.unlockedMaps.includes(value); equipped = saveData.currentMap === value; }
+    if (type === 'music') { unlocked = saveData.unlockedMusic.includes(value); equipped = saveData.currentMusic === value; }
 
     if (equipped) {
-        btn.innerText = "EQUIPADO"; btn.style.background = "#0ff"; btn.style.color = "#000"; btn.disabled = false;
+        btn.innerText = "EQUIPADO"; btn.style.background = "#0ff"; btn.style.color = "#000";
     } else if (unlocked) {
-        btn.innerText = "EQUIPAR"; btn.style.background = "#222"; btn.style.color = "#fff"; btn.disabled = false;
+        btn.innerText = "EQUIPAR"; btn.style.background = "#222"; btn.style.color = "#fff";
     } else {
-        btn.innerText = "COMPRAR"; btn.style.background = "#222"; btn.style.color = "#fff"; btn.disabled = false;
+        btn.innerText = "COMPRAR"; btn.style.background = "#222"; btn.style.color = "#fff";
     }
 }
 
 function buyItem(type, value, cost, btnId) {
-    let unlocked = type === 'color' ? saveData.unlockedColors.includes(value) : saveData.unlockedMaps.includes(value);
+    let unlocked = false;
+    if (type === 'color') unlocked = saveData.unlockedColors.includes(value);
+    if (type === 'map') unlocked = saveData.unlockedMaps.includes(value);
+    if (type === 'music') unlocked = saveData.unlockedMusic.includes(value);
+
     if (unlocked) {
         if (type === 'color') saveData.currentColor = value;
         if (type === 'map') saveData.currentMap = value;
+        if (type === 'music') saveData.currentMusic = value;
         saveGame();
     } else {
         if (saveData.coins >= cost) {
             saveData.coins -= cost;
             if (type === 'color') { saveData.unlockedColors.push(value); saveData.currentColor = value; }
             if (type === 'map') { saveData.unlockedMaps.push(value); saveData.currentMap = value; }
+            if (type === 'music') { saveData.unlockedMusic.push(value); saveData.currentMusic = value; }
             saveGame();
         } else alert("Moedas insuficientes! Derrote mais inimigos.");
     }
     updateShopUI();
 }
 
-// --- LÓGICA DO JOGO ---
+// --- LÓGICA DE JOGO ---
 function shoot(targetX, targetY) {
     const angle = Math.atan2(targetY - player.y, targetX - player.x);
     const count = Math.min(player.level, 7); 
     const spread = 0.2;
-    
     for(let i = 0; i < count; i++) {
         const offset = (i - (count-1)/2) * spread;
-        projectiles.push({
-            x: player.x, y: player.y, 
-            vx: Math.cos(angle + offset) * 12, vy: Math.sin(angle + offset) * 12
-        });
+        projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle + offset) * 12, vy: Math.sin(angle + offset) * 12 });
     }
     shake = 3;
 }
@@ -378,9 +392,7 @@ function autoShootMobile() {
         let dist = Math.hypot(player.x - en.x, player.y - en.y);
         if (dist < minDistance) { minDistance = dist; closestEnemy = en; }
     });
-    if (closestEnemy && minDistance < Math.max(canvas.width, canvas.height)) {
-        shoot(closestEnemy.x, closestEnemy.y);
-    }
+    if (closestEnemy && minDistance < Math.max(canvas.width, canvas.height)) { shoot(closestEnemy.x, closestEnemy.y); }
 }
 
 function spawnEnemy() {
@@ -397,8 +409,7 @@ function gainXP() {
     player.xp++;
     if(player.xp >= player.nextLvl) {
         player.level++; player.xp = 0; player.nextLvl += 5;
-        document.getElementById('lvl-num').innerText = player.level;
-        shake = 15;
+        document.getElementById('lvl-num').innerText = player.level; shake = 15;
         for(let j=0; j<30; j++) particles.push({ x: player.x, y: player.y, vx: (Math.random()-0.5)*20, vy: (Math.random()-0.5)*20, alpha: 1, color: saveData.currentColor });
     }
     document.getElementById('xp-bar').style.width = (player.xp / player.nextLvl * 100) + "%";
@@ -523,7 +534,6 @@ function draw() {
 
     update(); requestAnimationFrame(draw);
 }
-
 draw();
 </script>
 </body>
