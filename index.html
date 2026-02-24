@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ULTRA NEON SURVIVOR</title>
+    <style>
+        body { margin: 0; background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; user-select: none; -webkit-user-select: none; touch-action: none; }
+        canvas { display: block; }
+        
+        /* Aviso para girar o celular */
+        #rotate-warning {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000; color: #ff0055; z-index: 10000; align-items: center; justify-content: center;
+            text-align: center; font-size: 24px; font-weight: bold; text-transform: uppercase; flex-direction: column;
+        }
+        #rotate-warning span { font-size: 50px; margin-bottom: 20px; }
+
+        /* Esconde o jogo e mostra o aviso se estiver no modo celular e com tela em pé (portrait) */
+        @media screen and (orientation: portrait) {
+            body.mobile-playing #rotate-warning { display: flex; }
+            body.mobile-playing canvas, body.mobile-playing #ui, body.mobile-playing #mobile-ui { display: none !important; }
+        }
+        
+        /* UI do Jogo */
+        #ui { 
+            position: absolute; top: 20px; left: 20px; pointer-events: none; 
+            text-transform: uppercase; letter-spacing: 2px; display: none; z-index: 5;
+        }
+        .bar-container { width: 200px; height: 10px; background: #333; margin-top: 10px; border-radius: 5px; }
+        #xp-bar { width: 0%; height: 100%; background: #ff00ff; border-radius: 5px; transition: 0.2s; box-shadow: 0 0 10px #ff00ff; }
+        .lvl { font-size: 12px; color: #ff00ff; margin-top: 5px; }
+        #pc-instructions { font-size: 10px; margin-top: 10px; color: #aaa; }
+        
+        /* Controles Mobile */
+        #mobile-ui { display: none; }
+        
+        #shoot-btn {
+            position: absolute; bottom: 30px; right: 30px; width: 80px; height: 80px;
+            background: rgba(255, 0, 85, 0.2); border: 2px solid #ff0055; border-radius: 50%;
+            color: #ff0055; font-weight: bold; font-size: 14px; text-shadow: 0 0 5px #ff0055;
+            box-shadow: 0 0 15px rgba(255,0,85,0.5); z-index: 10;
+        }
+        #shoot-btn:active { background: rgba(255, 0, 85, 0.6); }
+
+        #dash-btn {
+            position: absolute; bottom: 130px; right: 40px; width: 60px; height: 60px;
+            background: rgba(0, 255, 255, 0.2); border: 2px solid #0ff; border-radius: 50%;
+            color: #0ff; font-weight: bold; font-size: 12px; text-shadow: 0 0 5px #0ff;
+            box-shadow: 0 0 15px rgba(0,255,255,0.5); z-index: 10;
+        }
+        #dash-btn:active { background: rgba(0, 255, 255, 0.6); }
+
+        /* Telas de Menu e Loja */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); z-index: 20;
+        }
+        h1 { font-size: clamp(30px, 8vw, 60px); color: #0ff; text-shadow: 0 0 20px #0ff; margin-bottom: 10px; text-align: center;}
+        h2 { color: #ffcc00; text-shadow: 0 0 10px #ffcc00; }
+        
+        .btn-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; }
+        
+        .btn {
+            background: transparent; border: 2px solid #0ff; color: #0ff;
+            padding: 15px 30px; font-size: clamp(14px, 4vw, 20px); text-transform: uppercase; letter-spacing: 2px;
+            cursor: pointer; transition: 0.3s; font-weight: bold; font-family: inherit;
+        }
+        .btn:hover, .btn:active { background: #0ff; color: #000; box-shadow: 0 0 20px #0ff; transform: scale(1.05); }
+        .btn-shop { border-color: #ff00ff; color: #ff00ff; }
+        .btn-shop:hover, .btn-shop:active { background: #ff00ff; color: #fff; box-shadow: 0 0 20px #ff00ff; }
+        
+        .credits { position: absolute; bottom: 20px; font-size: 12px; color: #555; letter-spacing: 3px; text-align: center; width: 100%;}
+        .credits span { color: #0ff; font-weight: bold; text-shadow: 0 0 5px #0ff; }
+        
+        .shop-item { margin: 10px 0; display: flex; align-items: center; justify-content: space-between; gap: 15px; width: 100%; max-width: 400px;}
+        .shop-item button { padding: 10px 15px; font-size: 12px; cursor: pointer; background: #222; color: #fff; border: 1px solid #555; transition: 0.2s;}
+        .shop-item button:hover, .shop-item button:active { border-color: #fff; }
+        .shop-item button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        #shop-screen { display: none; }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" loop>
+        <source src="funk.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="rotate-warning">
+        <span>🔄</span>
+        GIRE O CELULAR<br>PARA A HORIZONTAL
+    </div>
+
+    <div id="main-menu" class="screen">
+        <h1>ULTRA NEON SURVIVOR</h1>
+        <p style="color: #aaa; margin-bottom: 10px; letter-spacing: 2px; text-align: center;">SOBREVIVA AO CAOS</p>
+        
+        <div class="btn-container">
+            <button class="btn" onclick="startGame(false)">JOGAR NO PC</button>
+            <button class="btn" style="border-color: #00ff00; color: #00ff00;" onclick="startGame(true)">JOGAR NO CELULAR</button>
+        </div>
+        
+        <button class="btn btn-shop" style="margin-top: 20px;" onclick="openShop()">DESBLOQUEIOS</button>
+        <p class="credits">DESENVOLVIDO POR <span>CAIO HÊNRY</span></p>
+    </div>
+
+    <div id="shop-screen" class="screen">
+        <h2>ÁREA DE DESBLOQUEIO</h2>
+        <p style="font-size: 20px;">Neon Coins: <span id="coin-display" style="color:#ffcc00; font-weight:bold;">0</span></p>
+        
+        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-top: 20px; width: 90%; max-width: 400px;">
+            <div class="shop-item">
+                <span style="color: #ff0055; flex: 1;">Cor: Rosa Chocante (50)</span>
+                <button id="btn-color-pink" onclick="buyItem('color', '#ff0055', 50, 'btn-color-pink')">COMPRAR</button>
+            </div>
+            <div class="shop-item">
+                <span style="color: #00ff00; flex: 1;">Cor: Verde Tóxico (100)</span>
+                <button id="btn-color-green" onclick="buyItem('color', '#00ff00', 100, 'btn-color-green')">COMPRAR</button>
+            </div>
+            <div class="shop-item">
+                <span style="color: #aaa; flex: 1;">Mapa: Cyber Grid (200)</span>
+                <button id="btn-map-grid" onclick="buyItem('map', 'grid', 200, 'btn-map-grid')">COMPRAR</button>
+            </div>
+        </div>
+
+        <button class="btn" style="margin-top: 30px; font-size: 14px;" onclick="closeShop()">VOLTAR AO MENU</button>
+    </div>
+
+    <div id="ui">
+        <div style="font-size: 24px; color: #0ff;">Kills: <span id="kills">0</span></div>
+        <div class="lvl">LEVEL <span id="lvl-num">1</span></div>
+        <div class="bar-container"><div id="xp-bar"></div></div>
+        <div id="pc-instructions">
+            WASD: Mover | MOUSE: Atirar | ESPAÇO: DASH <br>
+            <span style="color: #ffcc00;">Pegue os cristais amarelos para subir de nível!</span>
+        </div>
+    </div>
+
+    <div id="mobile-ui">
+        <button id="dash-btn">DASH</button>
+        <button id="shoot-btn">ATIRAR</button>
+    </div>
+
+    <canvas id="game"></canvas>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const ui = document.getElementById('ui');
+const pcInstructions = document.getElementById('pc-instructions');
+const mobileUI = document.getElementById('mobile-ui');
+const dashBtn = document.getElementById('dash-btn');
+const shootBtn = document.getElementById('shoot-btn');
+const mainMenu = document.getElementById('main-menu');
+const shopScreen = document.getElementById('shop-screen');
+const coinDisplay = document.getElementById('coin-display');
+const bgMusic = document.getElementById('bg-music'); // Áudio do jogo
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// --- SISTEMA DE SAVE ---
+let saveData = JSON.parse(localStorage.getItem('ultraNeonSave')) || {
+    coins: 0, unlockedColors: ['#0ff'], unlockedMaps: ['default'], currentColor: '#0ff', currentMap: 'default'
+};
+function saveGame() { localStorage.setItem('ultraNeonSave', JSON.stringify(saveData)); }
+
+// Variáveis do Jogo
+let gameState = 'MENU';
+let isMobile = false;
+let player = { x: canvas.width/2, y: canvas.height/2, size: 12, speed: 4, level: 1, xp: 0, nextLvl: 10, dashing: 0 };
+let projectiles = [], enemies = [], particles = [], collectibles = [], shake = 0, kills = 0, keys = {};
+let mouse = { x: 0, y: 0 };
+let isShootingMobile = false;
+let autoShootTimer = 0;
+
+// Variáveis do Joystick Virtual (Mobile)
+let joystick = { active: false, id: null, startX: 0, startY: 0, currentX: 0, currentY: 0, dx: 0, dy: 0, maxRadius: 50 };
+let joystickVisualBase = { x: 100, y: window.innerHeight - 100 };
+
+// --- CONTROLES PC ---
+window.onkeydown = e => keys[e.code] = true;
+window.onkeyup = e => keys[e.code] = false;
+window.onmousemove = e => { mouse.x = e.clientX; mouse.y = e.clientY; };
+window.onmousedown = () => { if(gameState === 'PLAYING' && !isMobile) shoot(mouse.x, mouse.y); };
+window.addEventListener('resize', () => { 
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight; 
+    joystickVisualBase.y = window.innerHeight - 100;
+});
+
+// --- CONTROLES MOBILE (Movimentação) ---
+canvas.addEventListener('touchstart', e => {
+    if (gameState !== 'PLAYING' || !isMobile) return;
+    for(let i=0; i<e.changedTouches.length; i++) {
+        let t = e.changedTouches[i];
+        if(t.clientX < canvas.width / 2 && !joystick.active) {
+            joystick.active = true;
+            joystick.id = t.identifier;
+            joystick.startX = t.clientX; joystick.startY = t.clientY;
+            joystick.currentX = t.clientX; joystick.currentY = t.clientY;
+            joystick.dx = 0; joystick.dy = 0;
+        }
+    }
+});
+canvas.addEventListener('touchmove', e => {
+    if (!joystick.active) return;
+    for(let i=0; i<e.changedTouches.length; i++) {
+        let t = e.changedTouches[i];
+        if(t.identifier === joystick.id) {
+            joystick.currentX = t.clientX; joystick.currentY = t.clientY;
+            let angle = Math.atan2(joystick.currentY - joystick.startY, joystick.currentX - joystick.startX);
+            let dist = Math.hypot(joystick.currentX - joystick.startX, joystick.currentY - joystick.startY);
+            if(dist > joystick.maxRadius) {
+                joystick.dx = Math.cos(angle) * joystick.maxRadius; joystick.dy = Math.sin(angle) * joystick.maxRadius;
+            } else {
+                joystick.dx = joystick.currentX - joystick.startX; joystick.dy = joystick.currentY - joystick.startY;
+            }
+        }
+    }
+});
+canvas.addEventListener('touchend', e => {
+    for(let i=0; i<e.changedTouches.length; i++) {
+        if(e.changedTouches[i].identifier === joystick.id) { joystick.active = false; joystick.dx = 0; joystick.dy = 0; }
+    }
+});
+canvas.addEventListener('touchcancel', () => { joystick.active = false; joystick.dx = 0; joystick.dy = 0; });
+
+dashBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if(player.dashing <= 0) player.dashing = 20; });
+
+shootBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (gameState === 'PLAYING') { isShootingMobile = true; autoShootMobile(); autoShootTimer = 0; }
+});
+shootBtn.addEventListener('touchend', (e) => { e.preventDefault(); isShootingMobile = false; });
+shootBtn.addEventListener('touchcancel', (e) => { e.preventDefault(); isShootingMobile = false; });
+
+
+// --- FUNÇÕES DE MENU E LOJA ---
+function startGame(mobileMode) {
+    isMobile = mobileMode;
+    gameState = 'PLAYING';
+    mainMenu.style.display = 'none';
+    ui.style.display = 'block';
+    
+    // Tenta tocar a música de fundo
+    bgMusic.volume = 0.5; // Deixa a música em 50% para ouvir os efeitos (se você colocar depois)
+    bgMusic.play().catch(e => console.log("Aguarde interação para tocar a música."));
+
+    if (isMobile) {
+        document.body.classList.add('mobile-playing'); // Ativa o aviso de tela deitada
+        pcInstructions.style.display = 'none';
+        mobileUI.style.display = 'block';
+
+        // Tenta forçar Tela Cheia (Fullscreen) e modo paisagem
+        let elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().then(() => {
+                if(screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(err => console.log("Bloqueio de tela não suportado"));
+                }
+            }).catch(err => console.log("Erro no fullscreen", err));
+        }
+
+    } else {
+        document.body.classList.remove('mobile-playing');
+        pcInstructions.style.display = 'block';
+        mobileUI.style.display = 'none';
+    }
+    
+    player = { x: canvas.width/2, y: canvas.height/2, size: 12, speed: 4, level: 1, xp: 0, nextLvl: 10, dashing: 0 };
+    projectiles = []; enemies = []; particles = []; collectibles = [];
+    kills = 0; document.getElementById('kills').innerText = kills;
+    document.getElementById('xp-bar').style.width = "0%";
+    document.getElementById('lvl-num').innerText = 1;
+    joystick.active = false; joystick.dx = 0; joystick.dy = 0; isShootingMobile = false;
+}
+
+function gameOver() {
+    gameState = 'MENU';
+    ui.style.display = 'none'; mobileUI.style.display = 'none'; mainMenu.style.display = 'flex';
+    document.body.classList.remove('mobile-playing'); // Desativa aviso
+    bgMusic.pause(); // Pausa a música ao morrer
+    saveData.coins += kills; saveGame(); isShootingMobile = false;
+    if (document.fullscreenElement) { document.exitFullscreen(); } // Sai da tela cheia
+}
+
+function openShop() { mainMenu.style.display = 'none'; shopScreen.style.display = 'flex'; updateShopUI(); }
+function closeShop() { shopScreen.style.display = 'none'; mainMenu.style.display = 'flex'; }
+
+function updateShopUI() {
+    coinDisplay.innerText = saveData.coins;
+    checkButtonState('color', '#ff0055', 'btn-color-pink');
+    checkButtonState('color', '#00ff00', 'btn-color-green');
+    checkButtonState('map', 'grid', 'btn-map-grid');
+}
+
+function checkButtonState(type, value, btnId) {
+    const btn = document.getElementById(btnId);
+    let unlocked = type === 'color' ? saveData.unlockedColors.includes(value) : saveData.unlockedMaps.includes(value);
+    let equipped = type === 'color' ? saveData.currentColor === value : saveData.currentMap === value;
+
+    if (equipped) {
+        btn.innerText = "EQUIPADO"; btn.style.background = "#0ff"; btn.style.color = "#000"; btn.disabled = false;
+    } else if (unlocked) {
+        btn.innerText = "EQUIPAR"; btn.style.background = "#222"; btn.style.color = "#fff"; btn.disabled = false;
+    } else {
+        btn.innerText = "COMPRAR"; btn.style.background = "#222"; btn.style.color = "#fff"; btn.disabled = false;
+    }
+}
+
+function buyItem(type, value, cost, btnId) {
+    let unlocked = type === 'color' ? saveData.unlockedColors.includes(value) : saveData.unlockedMaps.includes(value);
+    if (unlocked) {
+        if (type === 'color') saveData.currentColor = value;
+        if (type === 'map') saveData.currentMap = value;
+        saveGame();
+    } else {
+        if (saveData.coins >= cost) {
+            saveData.coins -= cost;
+            if (type === 'color') { saveData.unlockedColors.push(value); saveData.currentColor = value; }
+            if (type === 'map') { saveData.unlockedMaps.push(value); saveData.currentMap = value; }
+            saveGame();
+        } else alert("Moedas insuficientes! Derrote mais inimigos.");
+    }
+    updateShopUI();
+}
+
+// --- LÓGICA DO JOGO ---
+function shoot(targetX, targetY) {
+    const angle = Math.atan2(targetY - player.y, targetX - player.x);
+    const count = Math.min(player.level, 7); 
+    const spread = 0.2;
+    
+    for(let i = 0; i < count; i++) {
+        const offset = (i - (count-1)/2) * spread;
+        projectiles.push({
+            x: player.x, y: player.y, 
+            vx: Math.cos(angle + offset) * 12, vy: Math.sin(angle + offset) * 12
+        });
+    }
+    shake = 3;
+}
+
+function autoShootMobile() {
+    if (enemies.length === 0) return;
+    let closestEnemy = null; let minDistance = Infinity;
+    enemies.forEach(en => {
+        let dist = Math.hypot(player.x - en.x, player.y - en.y);
+        if (dist < minDistance) { minDistance = dist; closestEnemy = en; }
+    });
+    if (closestEnemy && minDistance < Math.max(canvas.width, canvas.height)) {
+        shoot(closestEnemy.x, closestEnemy.y);
+    }
+}
+
+function spawnEnemy() {
+    const side = Math.floor(Math.random() * 4);
+    let x, y;
+    if(side == 0) { x = Math.random()*canvas.width; y = -50; }
+    if(side == 1) { x = Math.random()*canvas.width; y = canvas.height+50; }
+    if(side == 2) { x = -50; y = Math.random()*canvas.height; }
+    if(side == 3) { x = canvas.width+50; y = Math.random()*canvas.height; }
+    enemies.push({ x, y, size: 15 + Math.random()*20, speed: 1 + Math.random() * (player.level*0.2) });
+}
+
+function gainXP() {
+    player.xp++;
+    if(player.xp >= player.nextLvl) {
+        player.level++; player.xp = 0; player.nextLvl += 5;
+        document.getElementById('lvl-num').innerText = player.level;
+        shake = 15;
+        for(let j=0; j<30; j++) particles.push({ x: player.x, y: player.y, vx: (Math.random()-0.5)*20, vy: (Math.random()-0.5)*20, alpha: 1, color: saveData.currentColor });
+    }
+    document.getElementById('xp-bar').style.width = (player.xp / player.nextLvl * 100) + "%";
+}
+
+function update() {
+    if (gameState !== 'PLAYING') return;
+
+    if(keys['Space'] && !isMobile && player.dashing <= 0) player.dashing = 20;
+    let currentSpeed = player.dashing > 10 ? player.speed * 4 : player.speed;
+    if(player.dashing > 0) player.dashing--;
+
+    if (isMobile && joystick.active) {
+        let force = Math.min(Math.hypot(joystick.dx, joystick.dy) / joystick.maxRadius, 1);
+        let angle = Math.atan2(joystick.dy, joystick.dx);
+        player.x += Math.cos(angle) * currentSpeed * force;
+        player.y += Math.sin(angle) * currentSpeed * force;
+    } else {
+        if(keys['KeyW']) player.y -= currentSpeed;
+        if(keys['KeyS']) player.y += currentSpeed;
+        if(keys['KeyA']) player.x -= currentSpeed;
+        if(keys['KeyD']) player.x += currentSpeed;
+    }
+
+    player.x = Math.max(player.size, Math.min(canvas.width - player.size, player.x));
+    player.y = Math.max(player.size, Math.min(canvas.height - player.size, player.y));
+
+    if (isMobile && isShootingMobile) {
+        autoShootTimer++;
+        if (autoShootTimer >= 10) { autoShootMobile(); autoShootTimer = 0; }
+    }
+
+    collectibles.forEach((c, i) => {
+        let dist = Math.hypot(player.x - c.x, player.y - c.y);
+        if(dist < 80 + (player.level * 2)) {
+            const angle = Math.atan2(player.y - c.y, player.x - c.x);
+            c.x += Math.cos(angle) * 8; c.y += Math.sin(angle) * 8;
+        }
+        if(dist < player.size + c.size) { collectibles.splice(i, 1); gainXP(); }
+    });
+
+    projectiles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy;
+        if(p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) projectiles.splice(i, 1);
+    });
+
+    enemies.forEach((en, i) => {
+        const angle = Math.atan2(player.y - en.y, player.x - en.x);
+        en.x += Math.cos(angle) * en.speed; en.y += Math.sin(angle) * en.speed;
+
+        if(Math.hypot(player.x - en.x, player.y - en.y) < en.size && player.dashing < 10) gameOver();
+
+        projectiles.forEach((p, pi) => {
+            if(Math.hypot(p.x - en.x, p.y - en.y) < en.size) {
+                collectibles.push({ x: en.x, y: en.y, size: 6 });
+                enemies.splice(i, 1); projectiles.splice(pi, 1);
+                kills++; document.getElementById('kills').innerText = kills; shake = 5;
+                for(let j=0; j<10; j++) particles.push({ x: en.x, y: en.y, vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15, alpha: 1, color: '#ff0055' });
+            }
+        });
+    });
+
+    if(Math.random() < 0.05 + (player.level * 0.01)) spawnEnemy();
+}
+
+function draw() {
+    if (saveData.currentMap === 'grid') {
+        ctx.fillStyle = 'rgba(0, 10, 20, 0.4)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.05)'; ctx.lineWidth = 1; ctx.beginPath();
+        for(let i=0; i<canvas.width; i+=50) { ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); }
+        for(let i=0; i<canvas.height; i+=50) { ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); }
+        ctx.stroke();
+    } else {
+        ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    ctx.save();
+    if(shake > 0) { ctx.translate(Math.random()*shake, Math.random()*shake); shake *= 0.9; }
+
+    particles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy; p.alpha -= 0.03;
+        if(p.alpha <= 0) particles.splice(i, 1);
+        ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 3, 3);
+    });
+
+    if (gameState === 'PLAYING') {
+        ctx.shadowBlur = 10; ctx.shadowColor = '#ffcc00'; ctx.fillStyle = '#ffcc00';
+        collectibles.forEach(c => {
+            ctx.beginPath(); ctx.moveTo(c.x, c.y - c.size); ctx.lineTo(c.x + c.size, c.y);
+            ctx.lineTo(c.x, c.y + c.size); ctx.lineTo(c.x - c.size, c.y); ctx.fill();
+        });
+
+        ctx.shadowBlur = 15; ctx.shadowColor = saveData.currentColor;
+        ctx.fillStyle = player.dashing > 10 ? '#fff' : saveData.currentColor;
+        ctx.beginPath(); ctx.arc(player.x, player.y, player.size, 0, Math.PI*2); ctx.fill();
+
+        enemies.forEach(en => {
+            ctx.shadowColor = '#ff0055'; ctx.fillStyle = '#ff0055'; ctx.beginPath();
+            ctx.moveTo(en.x, en.y - en.size); ctx.lineTo(en.x - en.size, en.y + en.size);
+            ctx.lineTo(en.x + en.size, en.y + en.size); ctx.fill();
+        });
+
+        ctx.shadowColor = '#fff'; ctx.fillStyle = '#fff';
+        projectiles.forEach(p => ctx.fillRect(p.x, p.y, 4, 4));
+    } else if(Math.random() < 0.1) {
+        particles.push({ x: Math.random()*canvas.width, y: canvas.height+10, vx: (Math.random()-0.5)*2, vy: -Math.random()*5, alpha: 1, color: '#0ff' });
+    }
+    
+    ctx.restore();
+
+    if (gameState === 'PLAYING' && isMobile) {
+        ctx.globalAlpha = 0.2; ctx.fillStyle = '#0ff';
+        if (joystick.active) {
+            ctx.beginPath(); ctx.arc(joystick.startX, joystick.startY, joystick.maxRadius, 0, Math.PI*2); ctx.fill();
+            ctx.globalAlpha = 0.6; ctx.beginPath(); ctx.arc(joystick.startX + joystick.dx, joystick.startY + joystick.dy, 20, 0, Math.PI*2); ctx.fill();
+        } else {
+            ctx.beginPath(); ctx.arc(joystickVisualBase.x, joystickVisualBase.y, joystick.maxRadius, 0, Math.PI*2); ctx.fill();
+            ctx.globalAlpha = 0.6; ctx.beginPath(); ctx.arc(joystickVisualBase.x, joystickVisualBase.y, 20, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.globalAlpha = 1.0;
+    }
+
+    update(); requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+</body>
+</html>
