@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ULTRA NEON SURVIVOR - DOPAMINE UPDATE</title>
+    <title>ULTRA NEON SURVIVOR - RANKING UPDATE</title>
     <style>
         /* ========================================================
            RESET E CONFIGURAÇÕES BÁSICAS DA PÁGINA
@@ -29,6 +29,7 @@
             left: 0;
             width: 100%; 
             height: 100%; 
+            z-index: 1;
         }
         
         /* ========================================================
@@ -208,6 +209,7 @@
            ======================================================== */
         #mobile-ui { 
             display: none; 
+            z-index: 10;
         }
         
         .mobile-btn {
@@ -259,7 +261,7 @@
         }
 
         /* ========================================================
-           TELAS DOS MENUS
+           TELAS DOS MENUS E LOGIN
            ======================================================== */
         .screen {
             position: absolute; 
@@ -276,6 +278,13 @@
             z-index: 20;
         }
 
+        /* Efeito Game Over Vermelho */
+        #game-over-screen {
+            background: radial-gradient(circle at center, rgba(150, 0, 20, 0.8) 0%, rgba(0, 0, 0, 0.95) 100%);
+            display: none;
+            z-index: 50;
+        }
+
         .screen-title { 
             font-size: clamp(35px, 8vw, 70px); 
             color: #0ff; 
@@ -288,10 +297,40 @@
 
         .screen-subtitle { 
             color: #aaa; 
-            margin-bottom: 30px; 
+            margin-bottom: 20px; 
             letter-spacing: 5px; 
             text-align: center;
             font-size: 14px;
+        }
+
+        /* INPUT DE NOME (SLITHER.IO STYLE) */
+        .nickname-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #ffcc00;
+            color: #ffcc00;
+            font-size: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+            width: 80%;
+            max-width: 300px;
+            outline: none;
+            box-shadow: inset 0 0 10px rgba(255,204,0,0.3), 0 0 15px rgba(255,204,0,0.5);
+            text-transform: uppercase;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .nickname-input:focus {
+            box-shadow: inset 0 0 10px rgba(255,204,0,0.5), 0 0 30px rgba(255,204,0,0.8);
+            border-color: #fff;
+            color: #fff;
+        }
+
+        .nickname-input::placeholder {
+            color: rgba(255, 204, 0, 0.4);
         }
 
         h2 { 
@@ -299,13 +338,14 @@
             text-shadow: 0 0 15px #ffcc00; 
             font-size: 28px;
             letter-spacing: 2px;
+            margin-bottom: 15px;
         }
         
         .btn-container { 
             display: flex; 
             flex-wrap: wrap; 
             justify-content: center; 
-            gap: 20px; 
+            gap: 15px; 
             margin-top: 10px; 
         }
         
@@ -313,8 +353,8 @@
             background: rgba(0, 0, 0, 0.5); 
             border: 2px solid #0ff; 
             color: #0ff;
-            padding: 15px 40px; 
-            font-size: clamp(14px, 4vw, 18px); 
+            padding: 12px 30px; 
+            font-size: clamp(12px, 3vw, 16px); 
             text-transform: uppercase; 
             letter-spacing: 3px;
             cursor: pointer; 
@@ -332,17 +372,11 @@
             transform: scale(1.05) translateY(-2px); 
         }
 
-        .btn-shop { 
-            border-color: #ff00ff; 
-            color: #ff00ff; 
-            margin-top: 30px;
-        }
+        .btn-shop { border-color: #ff00ff; color: #ff00ff; }
+        .btn-shop:hover, .btn-shop:active { background: #ff00ff; color: #fff; box-shadow: 0 0 30px #ff00ff; }
 
-        .btn-shop:hover, .btn-shop:active { 
-            background: #ff00ff; 
-            color: #fff; 
-            box-shadow: 0 0 30px #ff00ff; 
-        }
+        .btn-rank { border-color: #ffcc00; color: #ffcc00; }
+        .btn-rank:hover, .btn-rank:active { background: #ffcc00; color: #000; box-shadow: 0 0 30px #ffcc00; }
         
         .credits { 
             position: absolute; 
@@ -361,30 +395,29 @@
         }
         
         /* ========================================================
-           LOJA DE ITENS E MÚSICAS
+           LOJA E RANKING CONTAINERS
            ======================================================== */
-        .shop-container {
+        .shop-container, .ranking-container {
             background: rgba(255,255,255,0.03); 
             padding: 20px; 
             border-radius: 12px; 
-            margin-top: 15px; 
             width: 90%; 
             max-width: 500px;
-            max-height: 55vh; 
+            max-height: 50vh; 
             overflow-y: auto; 
             overflow-x: hidden;
             border: 1px solid rgba(255,255,255,0.1);
             box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
         }
         
-        .shop-container::-webkit-scrollbar {
+        .shop-container::-webkit-scrollbar, .ranking-container::-webkit-scrollbar {
             width: 8px;
         }
-        .shop-container::-webkit-scrollbar-track {
+        .shop-container::-webkit-scrollbar-track, .ranking-container::-webkit-scrollbar-track {
             background: rgba(0,0,0,0.2); 
             border-radius: 4px;
         }
-        .shop-container::-webkit-scrollbar-thumb {
+        .shop-container::-webkit-scrollbar-thumb, .ranking-container::-webkit-scrollbar-thumb {
             background: #ff00ff; 
             border-radius: 4px;
         }
@@ -407,44 +440,44 @@
         .shop-item-map { border-left-color: #0ff; }
         .shop-item-music { border-left-color: #ffcc00; }
 
-        .shop-item span { 
-            font-size: 15px; 
-            font-weight: 500;
-            letter-spacing: 1px;
-        }
+        .shop-item span { font-size: 15px; font-weight: 500; letter-spacing: 1px; }
 
         .shop-item button { 
-            padding: 8px 15px; 
-            font-size: 12px; 
-            font-weight: bold;
-            letter-spacing: 1px;
-            cursor: pointer; 
-            background: #111; 
-            color: #fff; 
-            border: 1px solid #555; 
-            border-radius: 4px;
-            transition: all 0.2s;
+            padding: 8px 15px; font-size: 12px; font-weight: bold; letter-spacing: 1px;
+            cursor: pointer; background: #111; color: #fff; 
+            border: 1px solid #555; border-radius: 4px; transition: all 0.2s;
         }
 
-        .shop-item button:hover { 
-            border-color: #fff; 
-            background: #222;
-        }
+        .shop-item button:hover { border-color: #fff; background: #222; }
         
-        #shop-screen { 
-            display: none; 
+        /* RANKING ITENS */
+        .rank-item {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.6);
+            margin: 5px 0;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border-left: 4px solid #ffcc00;
+            font-size: 16px;
         }
+
+        .rank-pos { font-weight: bold; color: #ffcc00; width: 30px; }
+        .rank-name { flex: 1; text-align: left; padding-left: 10px; color: #fff; }
+        .rank-score { font-weight: bold; color: #0ff; text-shadow: 0 0 5px #0ff; }
+
+        #shop-screen, #ranking-screen { display: none; }
 
         /* Responsivo Extremo para Celulares Deitados */
         @media screen and (max-height: 500px) {
             .screen-title { font-size: clamp(25px, 6vw, 40px); margin-bottom: 0px; }
             .screen-subtitle { margin-bottom: 10px; font-size: 10px; }
+            .nickname-input { padding: 8px 15px; font-size: 16px; margin-bottom: 10px; }
             .btn-container { margin-top: 5px; gap: 10px; }
-            .btn { padding: 8px 20px; font-size: 12px; }
-            .btn-shop { margin-top: 10px; }
+            .btn { padding: 8px 15px; font-size: 11px; }
             .credits { position: relative; bottom: 0; margin-top: 10px; font-size: 10px; }
             h2 { font-size: 18px; margin-bottom: 5px; margin-top: 5px; }
-            .shop-container { padding: 10px; margin-top: 5px; max-height: 50vh; }
+            .shop-container, .ranking-container { padding: 10px; margin-top: 5px; max-height: 45vh; }
             .shop-item { margin: 6px 0; padding: 6px 10px; }
             .shop-item span { font-size: 13px; }
             .shop-item button { padding: 6px 10px; font-size: 10px; }
@@ -465,17 +498,37 @@
         <div id="motivational-msg">MANDOU BEM!</div>
     </div>
 
+    <div id="game-over-screen" class="screen">
+        <h1 style="color: #ff0055; text-shadow: 0 0 30px #ff0055; font-size: clamp(40px, 10vw, 80px);">VOCÊ FOI DESTRUÍDO</h1>
+        <p style="color: #fff; font-size: 20px; letter-spacing: 3px;">PONTUAÇÃO SALVA NO RANKING</p>
+    </div>
+
     <div id="main-menu" class="screen">
         <h1 class="screen-title">ULTRA NEON SURVIVOR</h1>
         <p class="screen-subtitle">MUNDO ABERTO & DOPAMINA</p>
         
+        <input type="text" id="player-nickname" class="nickname-input" placeholder="DIGITE SEU NICKNAME" maxlength="15">
+
         <div class="btn-container">
             <button class="btn" onclick="initializeAudio(); startGame(false);">JOGAR NO PC</button>
             <button class="btn" style="border-color: #00ff00; color: #00ff00;" onclick="initializeAudio(); startGame(true);">JOGAR NO CELULAR</button>
         </div>
         
-        <button class="btn btn-shop" onclick="openShop()">DESBLOQUEIOS</button>
+        <div class="btn-container">
+            <button class="btn btn-shop" onclick="openShop()">DESBLOQUEIOS</button>
+            <button class="btn btn-rank" onclick="openRanking()">RANKING</button>
+        </div>
+
         <p class="credits">DESENVOLVIDO POR <span>CAIO HÊNRY</span></p>
+    </div>
+
+    <div id="ranking-screen" class="screen">
+        <h2>TOP SOBREVIVENTES</h2>
+        
+        <div class="ranking-container" id="ranking-list">
+            </div>
+
+        <button class="btn" style="margin-top: 20px; border-color: #fff; color: #fff;" onclick="closeRanking()">VOLTAR AO MENU</button>
     </div>
 
     <div id="shop-screen" class="screen">
@@ -557,15 +610,18 @@ const pcInstructions = document.getElementById('pc-instructions');
 const mobileUI = document.getElementById('mobile-ui');
 const mainMenu = document.getElementById('main-menu');
 const shopScreen = document.getElementById('shop-screen');
+const rankingScreen = document.getElementById('ranking-screen');
+const gameOverScreen = document.getElementById('game-over-screen');
 const bgMusic = document.getElementById('bg-music');
 const msgContainer = document.getElementById('center-msg-container');
 const motivationalMsg = document.getElementById('motivational-msg');
+const nicknameInput = document.getElementById('player-nickname');
 
-// O MUNDO TEM LIMITES AGORA! (DOPAMINA: O jogador não fica vagando no infinito)
+// O MUNDO TEM LIMITES
 const WORLD_WIDTH = 4000;
 const WORLD_HEIGHT = 4000;
 
-// Sistema de Save via LocalStorage
+// Sistema de Save via LocalStorage (Itens)
 let saveData = JSON.parse(localStorage.getItem('ultraNeonSave')) || {
     coins: 0, 
     unlockedColors: ['#0ff'], 
@@ -573,17 +629,41 @@ let saveData = JSON.parse(localStorage.getItem('ultraNeonSave')) || {
     unlockedMaps: ['default'], 
     currentMap: 'default',
     unlockedMusic: ['funk.mp3'], 
-    currentMusic: 'funk.mp3'
+    currentMusic: 'funk.mp3',
+    lastName: '' // Lembrar o último nome digitado
 };
 
-// Fix para garantir que saves antigos tenham música
 if(!saveData.unlockedMusic) { 
     saveData.unlockedMusic = ['funk.mp3']; 
     saveData.currentMusic = 'funk.mp3'; 
 }
 
+// Restaura o nome no input caso já tenha jogado
+if (saveData.lastName) {
+    nicknameInput.value = saveData.lastName;
+}
+
+// Sistema de Ranking via LocalStorage
+let leaderboard = JSON.parse(localStorage.getItem('ultraNeonRanking')) || [];
+
 function saveGame() { 
     localStorage.setItem('ultraNeonSave', JSON.stringify(saveData)); 
+}
+
+function saveToLeaderboard(name, kills) {
+    let finalName = name.trim() === '' ? 'ANÔNIMO' : name.toUpperCase().trim();
+    
+    // Adiciona ao ranking
+    leaderboard.push({ name: finalName, score: kills });
+    
+    // Ordena do maior pro menor
+    leaderboard.sort((a, b) => b.score - a.score);
+    
+    // Mantém só os 10 primeiros
+    leaderboard = leaderboard.slice(0, 10);
+    
+    // Salva no navegador
+    localStorage.setItem('ultraNeonRanking', JSON.stringify(leaderboard));
 }
 
 // Estados
@@ -592,7 +672,6 @@ let isMobile = false;
 
 /* ==========================================================================
    MOTOR DE EFEITOS SONOROS (WEB AUDIO API)
-   DOPAMINA PURA: Sons gerados por código, sem precisar baixar MP3!
    ========================================================================== */
 let audioCtx;
 
@@ -691,12 +770,12 @@ let combo = {
     maxTimer: 180 // 3 segundos a 60 FPS
 };
 
-// Agora o jogador pode ter MÚLTIPLOS BOTS! (Um por cada Boss derrotado)
+// O EXÉRCITO DE BOTS (Corrigido para orbitar sem sumir)
 let helperBots = [];
 
 // Arrays de entidades
 let projectiles = [];
-let enemyProjectiles = []; // Novos tiros inimigos!
+let enemyProjectiles = [];
 let enemies = [];
 let particles = [];
 let collectibles = [];
@@ -879,6 +958,10 @@ window.addEventListener('orientationchange', function() { setTimeout(ajustarTela
 ajustarTela();
 
 function startGame(mobileMode) {
+    // Salva o nome digitado
+    saveData.lastName = nicknameInput.value;
+    saveGame();
+
     isMobile = mobileMode;
     gameState = 'PLAYING';
     mainMenu.style.display = 'none';
@@ -943,22 +1026,68 @@ function startGame(mobileMode) {
 }
 
 function gameOver() {
-    gameState = 'MENU';
+    gameState = 'GAMEOVER';
+    
+    // Esconde a UI do jogo
     ui.style.display = 'none'; 
     uiTopRight.style.display = 'none';
     mobileUI.style.display = 'none'; 
     msgContainer.style.display = 'none';
-    mainMenu.style.display = 'flex';
-    document.body.classList.remove('mobile-playing');
     
+    // Para a música e salva as moedas
     bgMusic.pause(); 
     saveData.coins += kills; 
     saveGame(); 
     isShootingMobile = false;
+
+    // Salva no Ranking
+    saveToLeaderboard(nicknameInput.value, kills);
     
+    // Exibe Tela de Morte
+    gameOverScreen.style.display = 'flex';
+
+    // Tira o modo fullscreen se tiver
     if (document.fullscreenElement) { 
         document.exitFullscreen().catch(e => {}); 
     } 
+
+    // Transição Automática de volta pro Menu após 3 segundos
+    setTimeout(() => {
+        gameOverScreen.style.display = 'none';
+        document.body.classList.remove('mobile-playing');
+        mainMenu.style.display = 'flex';
+    }, 3000);
+}
+
+/* ==========================================================================
+   SISTEMA DE RANKING
+   ========================================================================== */
+function openRanking() {
+    mainMenu.style.display = 'none';
+    rankingScreen.style.display = 'flex';
+    
+    const listDiv = document.getElementById('ranking-list');
+    listDiv.innerHTML = ''; // limpa a lista atual
+
+    if (leaderboard.length === 0) {
+        listDiv.innerHTML = '<p style="text-align:center; color:#aaa;">NENHUM SOBREVIVENTE AINDA...</p>';
+    } else {
+        leaderboard.forEach((entry, index) => {
+            let item = document.createElement('div');
+            item.className = 'rank-item';
+            item.innerHTML = `
+                <div class="rank-pos">#${index + 1}</div>
+                <div class="rank-name">${entry.name}</div>
+                <div class="rank-score">${entry.score} Kills</div>
+            `;
+            listDiv.appendChild(item);
+        });
+    }
+}
+
+function closeRanking() {
+    rankingScreen.style.display = 'none';
+    mainMenu.style.display = 'flex';
 }
 
 /* ==========================================================================
@@ -1186,18 +1315,10 @@ function killEnemy(index) {
     if (en.type === 'boss') {
         collectibles.push({ x: en.x, y: en.y, size: 20, xpValue: 50 }); 
         
-        // ADICIONA UM NOVO BOT PARA O JOGADOR!
-        helperBots.push({
-            x: en.x, y: en.y, 
-            angle: helperBots.length * (Math.PI * 2 / (helperBots.length+1)), 
-            shootTimer: 0
-        });
+        // ADICIONA UM NOVO BOT PARA O JOGADOR! (AGORA ELES NÃO SOMEM!)
+        // Adiciona um bot zerado no array
+        helperBots.push({ shootTimer: 0 });
         
-        // Reorganiza o ângulo dos bots existentes para ficar simétrico
-        for(let k=0; k<helperBots.length; k++){
-            helperBots[k].angle = k * (Math.PI * 2 / helperBots.length);
-        }
-
         spawnFloatingText(en.x, en.y, "+1 BOT!", "#0ff", true);
         shake += 20;
 
@@ -1206,7 +1327,7 @@ function killEnemy(index) {
         spawnFloatingText(en.x, en.y, `+${1 * combo.multiplier}XP`, "#fff");
     }
     
-    // Cria Partículas
+    // Cria Partículas da Explosão do inimigo
     let sparkCount = en.type === 'boss' ? 40 : 12;
     for(let j = 0; j < sparkCount; j++) {
         particles.push({ 
@@ -1277,15 +1398,17 @@ function update() {
     camera.x = Math.max(0, Math.min(WORLD_WIDTH - canvas.width, targetCamX));
     camera.y = Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, targetCamY));
 
-    // --- BOTS AJUDANTES ---
-    helperBots.forEach(bot => {
-        bot.angle += 0.04;
-        // Órbita suave ao redor do player
-        let targetX = player.x + Math.cos(bot.angle) * 60;
-        let targetY = player.y + Math.sin(bot.angle) * 60;
+    // --- BOTS AJUDANTES (Lógica de Órbita 100% Precisa via Tempo) ---
+    // Usar Date.now() garante que os bots NUNCA vão se bugar, se prender ou se unir em um só
+    let time = Date.now() / 1000; 
+    let botRadius = 60 + (helperBots.length > 5 ? 10 : 0); // Fica um pouco mais largo se tiver muitos
+
+    helperBots.forEach((bot, index) => {
+        // Divide o círculo de 360 graus (Math.PI * 2) pelo número total de bots, garantindo a distância perfeita
+        let targetAngle = time * 2 + (index * (Math.PI * 2 / helperBots.length));
         
-        bot.x += (targetX - bot.x) * 0.15;
-        bot.y += (targetY - bot.y) * 0.15;
+        bot.x = player.x + Math.cos(targetAngle) * botRadius;
+        bot.y = player.y + Math.sin(targetAngle) * botRadius;
 
         bot.shootTimer++;
         if (bot.shootTimer > 50 && enemies.length > 0) {
@@ -1426,7 +1549,7 @@ function update() {
         // Reduz efeito de dano visual
         if(en.hitEffect > 0) en.hitEffect--;
 
-        // Clamping dos Inimigos nas Bordas
+        // Clamping dos Inimigos nas Bordas do Mundo
         en.x = Math.max(en.size, Math.min(WORLD_WIDTH - en.size, en.x));
         en.y = Math.max(en.size, Math.min(WORLD_HEIGHT - en.size, en.y));
 
