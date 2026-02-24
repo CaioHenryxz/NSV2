@@ -106,6 +106,24 @@
             color: #aaa; 
         }
         
+        /* Mensagem Motivacional */
+        #motivational-msg {
+            position: absolute; 
+            top: 25%; 
+            left: 50%; 
+            transform: translate(-50%, -50%);
+            color: #ffcc00; 
+            font-size: clamp(30px, 6vw, 50px); 
+            font-weight: bold; 
+            font-style: italic;
+            text-shadow: 0 0 20px #ffcc00, 0 0 40px #ff0055;
+            display: none; 
+            z-index: 100; 
+            text-align: center; 
+            pointer-events: none;
+            letter-spacing: 5px;
+        }
+
         /* Controles Mobile */
         #mobile-ui { 
             display: none; 
@@ -238,7 +256,7 @@
             text-shadow: 0 0 5px #0ff; 
         }
         
-        /* Container da loja com scroll */
+        /* Container da loja com scroll para caber tudo */
         .shop-container {
             background: rgba(255,255,255,0.05); 
             padding: 15px; 
@@ -282,6 +300,7 @@
             display: none; 
         }
 
+        /* Ajustes responsivos para celular na horizontal */
         @media screen and (max-height: 500px) {
             h1 { font-size: clamp(20px, 6vw, 30px); margin-bottom: 5px; }
             #main-menu p:not(.credits) { margin-bottom: 5px !important; font-size: 12px; }
@@ -301,16 +320,18 @@
 </head>
 <body>
 
-    <audio id="bg-music" loop></audio>
+    <audio id="bg-music" loop playsinline></audio>
 
     <div id="rotate-warning">
         <span>🔄</span>
         GIRE O CELULAR<br>PARA A HORIZONTAL
     </div>
 
+    <div id="motivational-msg">MANDOU BEM!</div>
+
     <div id="main-menu" class="screen">
         <h1>ULTRA NEON SURVIVOR</h1>
-        <p style="color: #aaa; margin-bottom: 10px; letter-spacing: 2px; text-align: center;">SOBREVIVA AO CAOS</p>
+        <p style="color: #aaa; margin-bottom: 10px; letter-spacing: 2px; text-align: center;">SOBREVIVA AO CAOS INFINITO</p>
         
         <div class="btn-container">
             <button class="btn" onclick="startGame(false)">JOGAR NO PC</button>
@@ -343,7 +364,7 @@
             <hr style="border-color: #333; margin: 10px 0;">
             
             <div class="shop-item">
-                <span style="color: #ff9900; flex: 1;">Música: Funk 1 (Grátis)</span>
+                <span style="color: #ff9900; flex: 1;">Música: Funk (Grátis)</span>
                 <button id="btn-music-funk" onclick="buyItem('music', 'funk.mp3', 0, 'btn-music-funk')">EQUIPAR</button>
             </div>
             <div class="shop-item">
@@ -351,7 +372,7 @@
                 <button id="btn-music-funk2" onclick="buyItem('music', 'funk2.mp3', 150, 'btn-music-funk2')">COMPRAR</button>
             </div>
             <div class="shop-item">
-                <span style="color: #ff9900; flex: 1;">Música: Forró do Piseiro (300)</span>
+                <span style="color: #ff9900; flex: 1;">Música: Forró (300)</span>
                 <button id="btn-music-forro1" onclick="buyItem('music', 'forro1.mp3', 300, 'btn-music-forro1')">COMPRAR</button>
             </div>
         </div>
@@ -367,7 +388,6 @@
         </div>
         <div id="pc-instructions">
             WASD: Mover | MOUSE: Atirar | ESPAÇO: DASH <br>
-            <span style="color: #ffcc00;">Pegue os cristais amarelos para subir de nível!</span>
         </div>
     </div>
 
@@ -379,7 +399,7 @@
     <canvas id="game"></canvas>
 
 <script>
-// --- ANTI-ZOOM PARA iPHONE (SAFARI iOS) ---
+// --- ANTI-ZOOM PARA iPHONE (SAFARI iOS) E ANDROID ---
 document.addEventListener('gesturestart', function (e) { 
     e.preventDefault(); 
 });
@@ -401,8 +421,9 @@ const mainMenu = document.getElementById('main-menu');
 const shopScreen = document.getElementById('shop-screen');
 const coinDisplay = document.getElementById('coin-display');
 const bgMusic = document.getElementById('bg-music');
+const motivationalMsg = document.getElementById('motivational-msg');
 
-// --- SISTEMA DE SAVE ATUALIZADO (Com Músicas) ---
+// --- SISTEMA DE SAVE ATUALIZADO ---
 let saveData = JSON.parse(localStorage.getItem('ultraNeonSave')) || {
     coins: 0, 
     unlockedColors: ['#0ff'], 
@@ -422,8 +443,16 @@ function saveGame() {
     localStorage.setItem('ultraNeonSave', JSON.stringify(saveData)); 
 }
 
+// --- VARIÁVEIS GERAIS DO JOGO ---
 let gameState = 'MENU';
 let isMobile = false;
+
+// Câmera do mundo infinito
+let camera = { 
+    x: 0, 
+    y: 0 
+};
+
 let player = { 
     x: 0, 
     y: 0, 
@@ -469,15 +498,39 @@ let joystick = {
 };
 let joystickVisualBase = { x: 100, y: 0 };
 
-// Controles PC
-window.onkeydown = function(e) { keys[e.code] = true; };
-window.onkeyup = function(e) { keys[e.code] = false; };
-window.onmousemove = function(e) { mouse.x = e.clientX; mouse.y = e.clientY; };
-window.onmousedown = function() { 
-    if(gameState === 'PLAYING' && !isMobile) shoot(mouse.x, mouse.y, player.x, player.y, player.level); 
+// Array de Mensagens Motivacionais
+const motivacoes = [
+    "MANDOU BEM!", 
+    "MODO TURBO!", 
+    "DESTRUIDOR!", 
+    "CONTINUE ASSIM!", 
+    "INCRÍVEL!", 
+    "NÍVEL MÁXIMO!"
+];
+let msgTimer = null;
+
+// --- CONTROLES PC ---
+window.onkeydown = function(e) { 
+    keys[e.code] = true; 
 };
 
-// Ajuste de Tela
+window.onkeyup = function(e) { 
+    keys[e.code] = false; 
+};
+
+window.onmousemove = function(e) { 
+    mouse.x = e.clientX; 
+    mouse.y = e.clientY; 
+};
+
+window.onmousedown = function() { 
+    // Com a câmera, o tiro vai para a posição do mouse + a posição atual da câmera
+    if(gameState === 'PLAYING' && !isMobile) {
+        shoot(camera.x + mouse.x, camera.y + mouse.y, player.x, player.y, player.level);
+    } 
+};
+
+// --- AJUSTE DE TELA ---
 function ajustarTela() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -489,7 +542,7 @@ window.addEventListener('orientationchange', function() {
 });
 ajustarTela();
 
-// Controles Mobile
+// --- CONTROLES MOBILE ---
 canvas.addEventListener('touchstart', function(e) {
     if (gameState !== 'PLAYING' || !isMobile) return;
     for(let i = 0; i < e.changedTouches.length; i++) {
@@ -546,7 +599,9 @@ canvas.addEventListener('touchcancel', function() {
 
 dashBtn.addEventListener('touchstart', function(e) { 
     e.preventDefault(); 
-    if(player.dashing <= 0) player.dashing = 20; 
+    if(player.dashing <= 0) {
+        player.dashing = 20; 
+    }
 });
 
 shootBtn.addEventListener('touchstart', function(e) { 
@@ -575,13 +630,15 @@ function startGame(mobileMode) {
     mainMenu.style.display = 'none';
     ui.style.display = 'block';
 
-    // Inicia a música baseada no Save Data
+    // Inicia a música. Sem o .load() em mobile para evitar interrupções de promessa
     bgMusic.src = saveData.currentMusic;
     bgMusic.volume = 0.5;
-    bgMusic.load();
     let playPromise = bgMusic.play();
+    
     if (playPromise !== undefined) {
-        playPromise.catch(error => console.log("Áudio bloqueado pelo navegador."));
+        playPromise.catch(error => {
+            console.log("Áudio bloqueado pelo navegador. Tentando novamente na primeira interação.");
+        });
     }
 
     if (isMobile) {
@@ -605,8 +662,30 @@ function startGame(mobileMode) {
     
     ajustarTela();
     
-    player = { x: canvas.width / 2, y: canvas.height / 2, size: 12, speed: 4, level: 1, xp: 0, nextLvl: 10, dashing: 0 };
-    bot = { active: false, x: player.x, y: player.y, angle: 0, shootTimer: 0 };
+    // Reseta Player e posiciona Câmera
+    player = { 
+        x: 0, 
+        y: 0, 
+        size: 12, 
+        speed: 4, 
+        level: 1, 
+        xp: 0, 
+        nextLvl: 10, 
+        dashing: 0 
+    };
+    
+    camera = { 
+        x: player.x - canvas.width / 2, 
+        y: player.y - canvas.height / 2 
+    };
+    
+    bot = { 
+        active: false, 
+        x: player.x, 
+        y: player.y, 
+        angle: 0, 
+        shootTimer: 0 
+    };
     
     projectiles = []; 
     enemies = []; 
@@ -618,7 +697,9 @@ function startGame(mobileMode) {
     document.getElementById('xp-bar').style.width = "0%";
     document.getElementById('lvl-num').innerText = 1;
     
-    joystick.active = false; joystick.dx = 0; joystick.dy = 0; 
+    joystick.active = false; 
+    joystick.dx = 0; 
+    joystick.dy = 0; 
     isShootingMobile = false;
 }
 
@@ -659,7 +740,6 @@ function updateShopUI() {
     checkButtonState('color', '#00ff00', 'btn-color-green');
     checkButtonState('map', 'grid', 'btn-map-grid');
     
-    // Verificações das músicas na loja
     checkButtonState('music', 'funk.mp3', 'btn-music-funk');
     checkButtonState('music', 'funk2.mp3', 'btn-music-funk2');
     checkButtonState('music', 'forro1.mp3', 'btn-music-forro1');
@@ -670,9 +750,18 @@ function checkButtonState(type, value, btnId) {
     let unlocked = false;
     let equipped = false;
     
-    if (type === 'color') { unlocked = saveData.unlockedColors.includes(value); equipped = saveData.currentColor === value; }
-    if (type === 'map') { unlocked = saveData.unlockedMaps.includes(value); equipped = saveData.currentMap === value; }
-    if (type === 'music') { unlocked = saveData.unlockedMusic.includes(value); equipped = saveData.currentMusic === value; }
+    if (type === 'color') { 
+        unlocked = saveData.unlockedColors.includes(value); 
+        equipped = saveData.currentColor === value; 
+    }
+    if (type === 'map') { 
+        unlocked = saveData.unlockedMaps.includes(value); 
+        equipped = saveData.currentMap === value; 
+    }
+    if (type === 'music') { 
+        unlocked = saveData.unlockedMusic.includes(value); 
+        equipped = saveData.currentMusic === value; 
+    }
 
     if (equipped) {
         btn.innerText = "EQUIPADO"; 
@@ -704,9 +793,18 @@ function buyItem(type, value, cost, btnId) {
     } else {
         if (saveData.coins >= cost) {
             saveData.coins -= cost;
-            if (type === 'color') { saveData.unlockedColors.push(value); saveData.currentColor = value; }
-            if (type === 'map') { saveData.unlockedMaps.push(value); saveData.currentMap = value; }
-            if (type === 'music') { saveData.unlockedMusic.push(value); saveData.currentMusic = value; }
+            if (type === 'color') { 
+                saveData.unlockedColors.push(value); 
+                saveData.currentColor = value; 
+            }
+            if (type === 'map') { 
+                saveData.unlockedMaps.push(value); 
+                saveData.currentMap = value; 
+            }
+            if (type === 'music') { 
+                saveData.unlockedMusic.push(value); 
+                saveData.currentMusic = value; 
+            }
             saveGame();
         } else {
             alert("Moedas insuficientes! Derrote mais inimigos.");
@@ -730,7 +828,9 @@ function shoot(targetX, targetY, originX, originY, levelCount) {
             vy: Math.sin(angle + offset) * 12 
         });
     }
-    if(originX === player.x) shake = 3;
+    if(originX === player.x) {
+        shake = 3;
+    }
 }
 
 function autoShootMobile() {
@@ -747,31 +847,88 @@ function autoShootMobile() {
         }
     });
     
+    // Atira no inimigo se ele estiver dentro do campo de visão da câmera
     if (closestEnemy && minDistance < Math.max(canvas.width, canvas.height)) { 
         shoot(closestEnemy.x, closestEnemy.y, player.x, player.y, player.level); 
     }
+}
+
+// Mostra a mensagem de motivação na tela sem parar o jogo
+function showMotivation() {
+    const randomIndex = Math.floor(Math.random() * motivacoes.length);
+    motivationalMsg.innerText = motivacoes[randomIndex];
+    motivationalMsg.style.display = 'block';
+    
+    clearTimeout(msgTimer);
+    msgTimer = setTimeout(() => { 
+        motivationalMsg.style.display = 'none'; 
+    }, 1500);
 }
 
 function spawnEnemy(isBoss = false) {
     const side = Math.floor(Math.random() * 4);
     let x, y;
     
-    if(side == 0) { x = Math.random() * canvas.width; y = -50; }
-    if(side == 1) { x = Math.random() * canvas.width; y = canvas.height + 50; }
-    if(side == 2) { x = -50; y = Math.random() * canvas.height; }
-    if(side == 3) { x = canvas.width + 50; y = Math.random() * canvas.height; }
+    // Spawna os inimigos baseado na posição atual da câmera (nascem fora da tela)
+    if(side == 0) { 
+        x = camera.x + Math.random() * canvas.width; 
+        y = camera.y - 50; 
+    }
+    if(side == 1) { 
+        x = camera.x + Math.random() * canvas.width; 
+        y = camera.y + canvas.height + 50; 
+    }
+    if(side == 2) { 
+        x = camera.x - 50; 
+        y = camera.y + Math.random() * canvas.height; 
+    }
+    if(side == 3) { 
+        x = camera.x + canvas.width + 50; 
+        y = camera.y + Math.random() * canvas.height; 
+    }
     
     if (isBoss) {
         enemies.push({ 
-            x: x, y: y, 
-            size: 40, speed: 1.5, hp: 15, isBoss: true, hitEffect: 0
+            x: x, 
+            y: y, 
+            size: 40, 
+            speed: 1.5, 
+            hp: 15, 
+            type: 'boss', 
+            hitEffect: 0 
         });
-    } else {
-        enemies.push({ 
-            x: x, y: y, 
-            size: 15 + Math.random() * 20, speed: 1 + Math.random() * (player.level * 0.2), hp: 1, isBoss: false, hitEffect: 0
-        });
+        return;
     }
+
+    // Variedade de Inimigos Baseado no Nível
+    let type = 'normal';
+    let speed = 1 + Math.random() * (player.level * 0.1); 
+    let size = 15 + Math.random() * 20;
+    let hp = 1;
+
+    // A partir do lvl 3: Chance de aparecer triângulos velozes
+    if (player.level >= 3 && Math.random() < 0.3) {
+        type = 'fast'; 
+        size = 12; 
+        speed *= 1.6;
+    } 
+    // A partir do lvl 6: Chance de aparecer círculos pesados (tanques)
+    else if (player.level >= 6 && Math.random() < 0.2) {
+        type = 'tank'; 
+        size = 25; 
+        speed *= 0.6; 
+        hp = 3;
+    }
+
+    enemies.push({ 
+        x: x, 
+        y: y, 
+        size: size, 
+        speed: speed, 
+        hp: hp, 
+        type: type, 
+        hitEffect: 0 
+    });
 }
 
 function gainXP(amount = 1) {
@@ -783,11 +940,19 @@ function gainXP(amount = 1) {
         document.getElementById('lvl-num').innerText = player.level; 
         shake = 15;
         
+        // Ativa a motivação a cada 5 níveis (ex: 5, 10, 15, 20...)
+        if (player.level % 5 === 0) {
+            showMotivation();
+        }
+        
         for(let j = 0; j < 30; j++) {
             particles.push({ 
-                x: player.x, y: player.y, 
-                vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20, 
-                alpha: 1, color: saveData.currentColor 
+                x: player.x, 
+                y: player.y, 
+                vx: (Math.random() - 0.5) * 20, 
+                vy: (Math.random() - 0.5) * 20, 
+                alpha: 1, 
+                color: saveData.currentColor 
             });
         }
     }
@@ -807,6 +972,7 @@ function update() {
         player.dashing--;
     }
 
+    // Movimentação do Player
     if (isMobile && joystick.active) {
         let force = Math.min(Math.hypot(joystick.dx, joystick.dy) / joystick.maxRadius, 1);
         let angle = Math.atan2(joystick.dy, joystick.dx);
@@ -819,15 +985,16 @@ function update() {
         if(keys['KeyD']) player.x += currentSpeed;
     }
 
-    player.x = Math.max(player.size, Math.min(canvas.width - player.size, player.x));
-    player.y = Math.max(player.size, Math.min(canvas.height - player.size, player.y));
+    // --- CÂMERA SEGUE O JOGADOR ---
+    camera.x = player.x - canvas.width / 2;
+    camera.y = player.y - canvas.height / 2;
 
     // Lógica do Bot Ajudante
     if (bot.active) {
-        // Orbitar jogador
         bot.angle += 0.05;
         let targetX = player.x + Math.cos(bot.angle) * 50;
         let targetY = player.y + Math.sin(bot.angle) * 50;
+        
         bot.x += (targetX - bot.x) * 0.1;
         bot.y += (targetY - bot.y) * 0.1;
 
@@ -835,15 +1002,23 @@ function update() {
         if (bot.shootTimer > 40 && enemies.length > 0) {
             let closest = null;
             let minDist = Infinity;
+            
             enemies.forEach(en => {
                 let dist = Math.hypot(bot.x - en.x, bot.y - en.y);
-                if (dist < minDist) { minDist = dist; closest = en; }
+                if (dist < minDist && dist < canvas.width) { 
+                    minDist = dist; 
+                    closest = en; 
+                }
             });
-            if (closest) shoot(closest.x, closest.y, bot.x, bot.y, 1);
+            
+            if (closest) {
+                shoot(closest.x, closest.y, bot.x, bot.y, 1);
+            }
             bot.shootTimer = 0;
         }
     }
 
+    // Tiro automático Mobile
     if (isMobile && isShootingMobile) {
         autoShootTimer++;
         if (autoShootTimer >= 10) { 
@@ -852,52 +1027,62 @@ function update() {
         }
     }
 
+    // Interação com Cristais (XP)
     collectibles.forEach((c, i) => {
         let dist = Math.hypot(player.x - c.x, player.y - c.y);
+        
         if(dist < 80 + (player.level * 2)) {
             const angle = Math.atan2(player.y - c.y, player.x - c.x);
             c.x += Math.cos(angle) * 8; 
             c.y += Math.sin(angle) * 8;
         }
+        
         if(dist < player.size + c.size) { 
             collectibles.splice(i, 1); 
             gainXP(c.xpValue || 1); 
         }
     });
 
+    // Atualização dos Tiros
     projectiles.forEach((p, i) => {
         p.x += p.vx; 
         p.y += p.vy;
-        if(p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+        
+        // Limpa tiros que saíram muito pra fora da área da câmera (Otimização)
+        if(p.x < camera.x - 200 || p.x > camera.x + canvas.width + 200 || 
+           p.y < camera.y - 200 || p.y > camera.y + canvas.height + 200) {
             projectiles.splice(i, 1);
         }
     });
 
+    // Atualização e Colisão dos Inimigos
     enemies.forEach((en, i) => {
         const angle = Math.atan2(player.y - en.y, player.x - en.x);
         en.x += Math.cos(angle) * en.speed; 
         en.y += Math.sin(angle) * en.speed;
         
-        if(en.hitEffect > 0) en.hitEffect--;
+        if(en.hitEffect > 0) {
+            en.hitEffect--;
+        }
 
-        // Dano no Player (Game Over)
+        // Fim de jogo se o inimigo tocar no player (a não ser que esteja no Dash)
         if(Math.hypot(player.x - en.x, player.y - en.y) < en.size && player.dashing < 10) {
             gameOver();
         }
 
-        // Colisão Tiro vs Inimigo
         projectiles.forEach((p, pi) => {
             if(Math.hypot(p.x - en.x, p.y - en.y) < en.size) {
-                en.hp--;
-                en.hitEffect = 5;
+                en.hp--; 
+                en.hitEffect = 5; 
                 projectiles.splice(pi, 1);
                 
                 if (en.hp <= 0) {
-                    // Morte do inimigo / Boss
-                    if (en.isBoss) {
-                        collectibles.push({ x: en.x, y: en.y, size: 15, xpValue: 10 }); // Boss dá muito XP
-                        bot.active = true; // Libera o ajudante
-                        bot.x = en.x; bot.y = en.y;
+                    // Morte do Boss
+                    if (en.type === 'boss') {
+                        collectibles.push({ x: en.x, y: en.y, size: 15, xpValue: 10 }); 
+                        bot.active = true; 
+                        bot.x = en.x; 
+                        bot.y = en.y;
                     } else {
                         collectibles.push({ x: en.x, y: en.y, size: 6, xpValue: 1 });
                     }
@@ -905,13 +1090,17 @@ function update() {
                     enemies.splice(i, 1); 
                     kills++; 
                     document.getElementById('kills').innerText = kills; 
-                    shake = en.isBoss ? 20 : 5;
+                    shake = en.type === 'boss' ? 20 : 5;
                     
-                    for(let j = 0; j < (en.isBoss ? 30 : 10); j++) {
+                    let sparkCount = en.type === 'boss' ? 30 : 10;
+                    for(let j = 0; j < sparkCount; j++) {
                         particles.push({ 
-                            x: en.x, y: en.y, 
-                            vx: (Math.random() - 0.5) * 15, vy: (Math.random() - 0.5) * 15, 
-                            alpha: 1, color: en.isBoss ? '#fff' : '#ff0055' 
+                            x: en.x, 
+                            y: en.y, 
+                            vx: (Math.random() - 0.5) * 15, 
+                            vy: (Math.random() - 0.5) * 15, 
+                            alpha: 1, 
+                            color: en.type === 'boss' ? '#fff' : '#ff0055' 
                         });
                     }
                 }
@@ -919,9 +1108,11 @@ function update() {
         });
     });
 
-    // --- NOVA LÓGICA DE SPAWN ---
+    // Lógica de Spawn (Geração de Inimigos)
     let spawnChance = 0.01 + (kills * 0.001);
-    if(spawnChance > 0.10) spawnChance = 0.10; 
+    if(spawnChance > 0.10) {
+        spawnChance = 0.10; 
+    }
     
     if(Math.random() < spawnChance) {
         spawnEnemy(false);
@@ -929,37 +1120,65 @@ function update() {
     
     // SPAWN DO BOSS (Infrequente, requer level 5+)
     if (player.level >= 5 && Math.random() < 0.002) {
-        let bossExists = enemies.some(e => e.isBoss);
-        if (!bossExists) spawnEnemy(true);
+        let bossExists = enemies.some(e => e.type === 'boss');
+        if (!bossExists) {
+            spawnEnemy(true);
+        }
     }
 }
 
+// --- DESENHAR NA TELA (RENDERIZAÇÃO) ---
 function draw() {
+    // Fundo do Mapa
     if (saveData.currentMap === 'grid') {
         ctx.fillStyle = 'rgba(0, 10, 20, 0.4)'; 
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        ctx.strokeStyle = 'rgba(0, 255, 255, 0.05)'; 
-        ctx.lineWidth = 1; 
-        ctx.beginPath();
-        for(let i = 0; i < canvas.width; i += 50) { ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); }
-        for(let i = 0; i < canvas.height; i += 50) { ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); }
-        ctx.stroke();
     } else {
         ctx.fillStyle = 'rgba(0,0,0,0.3)'; 
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.save();
     
+    // Tremedeira da tela
     if(shake > 0) { 
         ctx.translate(Math.random() * shake, Math.random() * shake); 
         shake *= 0.9; 
     }
+    
+    // Translada tudo para simular o MUNDO INFINITO e a CÂMERA
+    if (gameState === 'PLAYING') {
+        ctx.translate(-camera.x, -camera.y);
+    }
 
+    // Desenha o Grid Infinito se estiver equipado
+    if (saveData.currentMap === 'grid' && gameState === 'PLAYING') {
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.05)'; 
+        ctx.lineWidth = 1; 
+        ctx.beginPath();
+        
+        let startX = Math.floor(camera.x / 50) * 50;
+        let startY = Math.floor(camera.y / 50) * 50;
+        
+        for(let i = startX; i < startX + canvas.width + 100; i += 50) { 
+            ctx.moveTo(i, camera.y - 50); 
+            ctx.lineTo(i, camera.y + canvas.height + 50); 
+        }
+        for(let i = startY; i < startY + canvas.height + 100; i += 50) { 
+            ctx.moveTo(camera.x - 50, i); 
+            ctx.lineTo(camera.x + canvas.width + 50, i); 
+        }
+        ctx.stroke();
+    }
+
+    // Partículas (Faíscas)
     particles.forEach((p, i) => {
-        p.x += p.vx; p.y += p.vy; p.alpha -= 0.03;
-        if(p.alpha <= 0) particles.splice(i, 1);
+        p.x += p.vx; 
+        p.y += p.vy; 
+        p.alpha -= 0.03;
+        
+        if(p.alpha <= 0) {
+            particles.splice(i, 1);
+        }
         
         ctx.globalAlpha = p.alpha; 
         ctx.fillStyle = p.color; 
@@ -967,15 +1186,15 @@ function draw() {
     });
 
     if (gameState === 'PLAYING') {
+        // Drops de XP
         ctx.shadowBlur = 10; 
-        
-        // XP Collectibles
         collectibles.forEach(c => {
             ctx.shadowColor = c.xpValue > 1 ? '#0ff' : '#ffcc00'; 
             ctx.fillStyle = c.xpValue > 1 ? '#0ff' : '#ffcc00';
+            
             ctx.beginPath(); 
             ctx.moveTo(c.x, c.y - c.size); 
-            ctx.lineTo(c.x + c.size, c.y);
+            ctx.lineTo(c.x + c.size, c.y); 
             ctx.lineTo(c.x, c.y + c.size); 
             ctx.lineTo(c.x - c.size, c.y); 
             ctx.fill();
@@ -983,41 +1202,69 @@ function draw() {
 
         // Player
         ctx.shadowBlur = 15; 
-        ctx.shadowColor = saveData.currentColor;
+        ctx.shadowColor = saveData.currentColor; 
         ctx.fillStyle = player.dashing > 10 ? '#fff' : saveData.currentColor;
+        
         ctx.beginPath(); 
         ctx.arc(player.x, player.y, player.size, 0, Math.PI * 2); 
         ctx.fill();
 
         // Bot Ajudante
-        if (bot.active) {
-            ctx.shadowColor = '#0ff';
-            ctx.fillStyle = '#0ff';
-            ctx.beginPath();
-            ctx.arc(bot.x, bot.y, 6, 0, Math.PI * 2);
-            ctx.fill();
+        if (bot.active) { 
+            ctx.shadowColor = '#0ff'; 
+            ctx.fillStyle = '#0ff'; 
+            
+            ctx.beginPath(); 
+            ctx.arc(bot.x, bot.y, 6, 0, Math.PI * 2); 
+            ctx.fill(); 
         }
 
-        // Enemies & Boss
+        // Desenhar os Inimigos de Acordo com o Tipo
         enemies.forEach(en => {
-            ctx.shadowColor = en.isBoss ? '#ff00ff' : '#ff0055'; 
-            ctx.fillStyle = en.hitEffect > 0 ? '#ffffff' : (en.isBoss ? '#220022' : '#ff0055'); 
-            
-            ctx.beginPath();
-            if (en.isBoss) {
-                // Desenha o Boss (Losango Estilizado)
-                ctx.lineWidth = 3;
+            if (en.type === 'boss') {
+                // Boss - Losango Branco/Rosa
+                ctx.shadowColor = '#ff00ff'; 
+                ctx.fillStyle = en.hitEffect > 0 ? '#ffffff' : '#220022'; 
+                ctx.lineWidth = 3; 
                 ctx.strokeStyle = en.hitEffect > 0 ? '#fff' : '#ff00ff';
+                
+                ctx.beginPath(); 
                 ctx.moveTo(en.x, en.y - en.size); 
-                ctx.lineTo(en.x + en.size, en.y);
+                ctx.lineTo(en.x + en.size, en.y); 
                 ctx.lineTo(en.x, en.y + en.size); 
                 ctx.lineTo(en.x - en.size, en.y); 
                 ctx.closePath();
-                ctx.fill();
+                ctx.fill(); 
                 ctx.stroke();
-            } else {
-                ctx.moveTo(en.x, en.y - en.size); 
+            } 
+            else if (en.type === 'fast') {
+                // Inimigo Rápido - Triângulo Amarelo
+                ctx.shadowColor = '#ffff00'; 
+                ctx.fillStyle = en.hitEffect > 0 ? '#ffffff' : '#ccaa00'; 
+                
+                ctx.beginPath();
+                ctx.moveTo(en.x, en.y - en.size);
                 ctx.lineTo(en.x - en.size, en.y + en.size);
+                ctx.lineTo(en.x + en.size, en.y + en.size);
+                ctx.fill();
+            }
+            else if (en.type === 'tank') {
+                // Inimigo Tanque - Círculo Roxo
+                ctx.shadowColor = '#8a2be2'; 
+                ctx.fillStyle = en.hitEffect > 0 ? '#ffffff' : '#4b0082'; 
+                
+                ctx.beginPath(); 
+                ctx.arc(en.x, en.y, en.size, 0, Math.PI * 2); 
+                ctx.fill();
+            }
+            else {
+                // Inimigo Normal - Quadrado Vermelho
+                ctx.shadowColor = '#ff0055'; 
+                ctx.fillStyle = en.hitEffect > 0 ? '#ffffff' : '#ff0055'; 
+                
+                ctx.beginPath(); 
+                ctx.moveTo(en.x, en.y - en.size); 
+                ctx.lineTo(en.x - en.size, en.y + en.size); 
                 ctx.lineTo(en.x + en.size, en.y + en.size); 
                 ctx.fill();
             }
@@ -1026,32 +1273,48 @@ function draw() {
         // Tiros
         ctx.shadowColor = '#fff'; 
         ctx.fillStyle = '#fff';
-        projectiles.forEach(p => {
-            ctx.fillRect(p.x, p.y, 4, 4);
+        
+        projectiles.forEach(p => { 
+            ctx.fillRect(p.x, p.y, 4, 4); 
         });
         
-    } else if(Math.random() < 0.1) { // Efeitos no menu
+    } else if(Math.random() < 0.1) { 
+        // Efeitos de partículas no Menu Inicial
         particles.push({ 
-            x: Math.random() * canvas.width, y: canvas.height + 10, 
-            vx: (Math.random() - 0.5) * 2, vy: -Math.random() * 5, 
-            alpha: 1, color: '#0ff' 
+            x: Math.random() * canvas.width, 
+            y: canvas.height + 10, 
+            vx: (Math.random() - 0.5) * 2, 
+            vy: -Math.random() * 5, 
+            alpha: 1, 
+            color: '#0ff' 
         });
     }
     
-    ctx.restore();
+    ctx.restore(); // FIM DA TRANSLAÇÃO DA CÂMERA
 
+    // --- DESENHA A UI DO CELULAR (Por cima da câmera) ---
     if (gameState === 'PLAYING' && isMobile) {
         ctx.globalAlpha = 0.2; 
         ctx.fillStyle = '#0ff';
         
         if (joystick.active) {
-            ctx.beginPath(); ctx.arc(joystick.startX, joystick.startY, joystick.maxRadius, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); 
+            ctx.arc(joystick.startX, joystick.startY, joystick.maxRadius, 0, Math.PI * 2); 
+            ctx.fill();
+            
             ctx.globalAlpha = 0.6; 
-            ctx.beginPath(); ctx.arc(joystick.startX + joystick.dx, joystick.startY + joystick.dy, 20, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); 
+            ctx.arc(joystick.startX + joystick.dx, joystick.startY + joystick.dy, 20, 0, Math.PI * 2); 
+            ctx.fill();
         } else {
-            ctx.beginPath(); ctx.arc(joystickVisualBase.x, joystickVisualBase.y, joystick.maxRadius, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); 
+            ctx.arc(joystickVisualBase.x, joystickVisualBase.y, joystick.maxRadius, 0, Math.PI * 2); 
+            ctx.fill();
+            
             ctx.globalAlpha = 0.6; 
-            ctx.beginPath(); ctx.arc(joystickVisualBase.x, joystickVisualBase.y, 20, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); 
+            ctx.arc(joystickVisualBase.x, joystickVisualBase.y, 20, 0, Math.PI * 2); 
+            ctx.fill();
         }
         ctx.globalAlpha = 1.0;
     }
@@ -1060,6 +1323,7 @@ function draw() {
     requestAnimationFrame(draw);
 }
 
+// Inicia o loop
 draw();
 </script>
 </body>
