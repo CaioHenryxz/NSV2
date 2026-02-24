@@ -84,6 +84,29 @@
         .shop-item button:disabled { opacity: 0.5; cursor: not-allowed; }
         
         #shop-screen { display: none; }
+
+        /* --- AJUSTES RESPONSIVOS PARA CELULAR NA HORIZONTAL --- */
+        @media screen and (max-height: 500px) {
+            /* Diminui os títulos e subtítulos */
+            h1 { font-size: clamp(20px, 6vw, 35px); margin-bottom: 5px; }
+            #main-menu p:not(.credits) { margin-bottom: 5px !important; font-size: 12px; }
+            
+            /* Aperta os botões para caberem na tela */
+            .btn-container { margin-top: 5px; gap: 10px; }
+            .btn { padding: 8px 15px; font-size: 12px; }
+            .btn-shop { margin-top: 10px !important; }
+            
+            /* Tira os créditos do fundo fixo para não sobrepor os botões */
+            .credits { position: relative; bottom: 0; margin-top: 15px; font-size: 10px; }
+            
+            /* Ajustes da Loja para não cortar os itens */
+            h2 { font-size: 18px; margin-bottom: 5px; margin-top: 10px; }
+            #shop-screen p { font-size: 14px !important; margin: 5px 0; }
+            #shop-screen > div { padding: 10px; margin-top: 5px; width: 95%; }
+            .shop-item { margin: 5px 0; gap: 5px; font-size: 12px; }
+            .shop-item button { padding: 5px 10px; font-size: 10px; }
+            #shop-screen .btn { margin-top: 15px !important; }
+        }
     </style>
 </head>
 <body>
@@ -197,14 +220,8 @@ function ajustarTela() {
     joystickVisualBase.y = window.innerHeight - 100;
 }
 
-// Ouve mudanças de tamanho da janela
 window.addEventListener('resize', ajustarTela);
-
-// Ouve quando o celular gira (orientationchange)
-window.addEventListener('orientationchange', () => {
-    // O setTimeout de 200ms é vital: dá tempo para a animação de giro do celular terminar!
-    setTimeout(ajustarTela, 200);
-});
+window.addEventListener('orientationchange', () => { setTimeout(ajustarTela, 200); });
 
 // --- CONTROLES MOBILE (Movimentação) ---
 canvas.addEventListener('touchstart', e => {
@@ -244,14 +261,9 @@ canvas.addEventListener('touchend', e => {
 canvas.addEventListener('touchcancel', () => { joystick.active = false; joystick.dx = 0; joystick.dy = 0; });
 
 dashBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if(player.dashing <= 0) player.dashing = 20; });
-
-shootBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    if (gameState === 'PLAYING') { isShootingMobile = true; autoShootMobile(); autoShootTimer = 0; }
-});
+shootBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if (gameState === 'PLAYING') { isShootingMobile = true; autoShootMobile(); autoShootTimer = 0; } });
 shootBtn.addEventListener('touchend', (e) => { e.preventDefault(); isShootingMobile = false; });
 shootBtn.addEventListener('touchcancel', (e) => { e.preventDefault(); isShootingMobile = false; });
-
 
 // --- FUNÇÕES DE MENU E LOJA ---
 function startGame(mobileMode) {
@@ -260,23 +272,20 @@ function startGame(mobileMode) {
     mainMenu.style.display = 'none';
     ui.style.display = 'block';
 
-    // Tenta tocar a música de fundo
     bgMusic.volume = 0.5;
     bgMusic.play().catch(e => console.log("Aguarde interação para tocar a música."));
 
     if (isMobile) {
-        document.body.classList.add('mobile-playing'); // Ativa o aviso de tela deitada
+        document.body.classList.add('mobile-playing'); 
         pcInstructions.style.display = 'none';
         mobileUI.style.display = 'block';
 
-        // Tenta forçar Tela Cheia (Fullscreen) e modo paisagem
         let elem = document.documentElement;
         if (elem.requestFullscreen) {
             elem.requestFullscreen().then(() => {
                 if(screen.orientation && screen.orientation.lock) {
                     screen.orientation.lock('landscape').catch(err => console.log("Bloqueio de tela não suportado"));
                 }
-                // Força o ajuste da tela logo após entrar em Fullscreen
                 setTimeout(ajustarTela, 300);
             }).catch(err => console.log("Erro no fullscreen", err));
         }
@@ -285,7 +294,7 @@ function startGame(mobileMode) {
         document.body.classList.remove('mobile-playing');
         pcInstructions.style.display = 'block';
         mobileUI.style.display = 'none';
-        ajustarTela(); // Força o ajuste no PC também ao iniciar
+        ajustarTela();
     }
     
     player = { x: canvas.width/2, y: canvas.height/2, size: 12, speed: 4, level: 1, xp: 0, nextLvl: 10, dashing: 0 };
@@ -299,10 +308,10 @@ function startGame(mobileMode) {
 function gameOver() {
     gameState = 'MENU';
     ui.style.display = 'none'; mobileUI.style.display = 'none'; mainMenu.style.display = 'flex';
-    document.body.classList.remove('mobile-playing'); // Desativa aviso
-    bgMusic.pause(); // Pausa a música ao morrer
+    document.body.classList.remove('mobile-playing');
+    bgMusic.pause(); 
     saveData.coins += kills; saveGame(); isShootingMobile = false;
-    if (document.fullscreenElement) { document.exitFullscreen(); } // Sai da tela cheia
+    if (document.fullscreenElement) { document.exitFullscreen(); } 
 }
 
 function openShop() { mainMenu.style.display = 'none'; shopScreen.style.display = 'flex'; updateShopUI(); }
