@@ -7,99 +7,281 @@
     <style>
         /* touch-action: none previne o zoom de "pinça" e rolagens indesejadas */
         body, html { 
-            margin: 0; padding: 0; width: 100%; height: 100%; background: #000; color: #fff; 
-            font-family: 'Segoe UI', sans-serif; overflow: hidden; 
-            user-select: none; -webkit-user-select: none; touch-action: none; 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: #000; 
+            color: #fff; 
+            font-family: 'Segoe UI', sans-serif; 
+            overflow: hidden; 
+            user-select: none; 
+            -webkit-user-select: none; 
+            touch-action: none; 
         }
         
         canvas { 
             display: block; 
             position: absolute;
-            top: 0; left: 0;
+            top: 0; 
+            left: 0;
             width: 100%; 
             height: 100%; 
         }
         
         /* Aviso para girar o celular */
         #rotate-warning {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; color: #ff0055; z-index: 10000; align-items: center; justify-content: center;
-            text-align: center; font-size: 24px; font-weight: bold; text-transform: uppercase; flex-direction: column;
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: #000; 
+            color: #ff0055; 
+            z-index: 10000; 
+            align-items: center; 
+            justify-content: center;
+            text-align: center; 
+            font-size: 24px; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            flex-direction: column;
         }
-        #rotate-warning span { font-size: 50px; margin-bottom: 20px; }
+
+        #rotate-warning span { 
+            font-size: 50px; 
+            margin-bottom: 20px; 
+        }
 
         @media screen and (orientation: portrait) {
-            body.mobile-playing #rotate-warning { display: flex; }
-            body.mobile-playing canvas, body.mobile-playing #ui, body.mobile-playing #mobile-ui { display: none !important; }
+            body.mobile-playing #rotate-warning { 
+                display: flex; 
+            }
+            body.mobile-playing canvas, 
+            body.mobile-playing #ui, 
+            body.mobile-playing #mobile-ui { 
+                display: none !important; 
+            }
         }
         
         /* UI do Jogo */
         #ui { 
-            position: absolute; top: 20px; left: 20px; pointer-events: none; 
-            text-transform: uppercase; letter-spacing: 2px; display: none; z-index: 5;
+            position: absolute; 
+            top: 20px; 
+            left: 20px; 
+            pointer-events: none; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            display: none; 
+            z-index: 5;
         }
-        .bar-container { width: 200px; height: 10px; background: #333; margin-top: 10px; border-radius: 5px; }
-        #xp-bar { width: 0%; height: 100%; background: #ff00ff; border-radius: 5px; transition: 0.2s; box-shadow: 0 0 10px #ff00ff; }
-        .lvl { font-size: 12px; color: #ff00ff; margin-top: 5px; }
-        #pc-instructions { font-size: 10px; margin-top: 10px; color: #aaa; }
+
+        .bar-container { 
+            width: 200px; 
+            height: 10px; 
+            background: #333; 
+            margin-top: 10px; 
+            border-radius: 5px; 
+        }
+
+        #xp-bar { 
+            width: 0%; 
+            height: 100%; 
+            background: #ff00ff; 
+            border-radius: 5px; 
+            transition: 0.2s; 
+            box-shadow: 0 0 10px #ff00ff; 
+        }
+
+        .lvl { 
+            font-size: 12px; 
+            color: #ff00ff; 
+            margin-top: 5px; 
+        }
+
+        #pc-instructions { 
+            font-size: 10px; 
+            margin-top: 10px; 
+            color: #aaa; 
+        }
         
         /* Controles Mobile */
-        #mobile-ui { display: none; }
+        #mobile-ui { 
+            display: none; 
+        }
         
         #shoot-btn {
-            position: absolute; bottom: 30px; right: 30px; width: 80px; height: 80px;
-            background: rgba(255, 0, 85, 0.2); border: 2px solid #ff0055; border-radius: 50%;
-            color: #ff0055; font-weight: bold; font-size: 14px; text-shadow: 0 0 5px #ff0055;
-            box-shadow: 0 0 15px rgba(255,0,85,0.5); z-index: 10;
+            position: absolute; 
+            bottom: 30px; 
+            right: 30px; 
+            width: 80px; 
+            height: 80px;
+            background: rgba(255, 0, 85, 0.2); 
+            border: 2px solid #ff0055; 
+            border-radius: 50%;
+            color: #ff0055; 
+            font-weight: bold; 
+            font-size: 14px; 
+            text-shadow: 0 0 5px #ff0055;
+            box-shadow: 0 0 15px rgba(255,0,85,0.5); 
+            z-index: 10;
         }
-        #shoot-btn:active { background: rgba(255, 0, 85, 0.6); }
+
+        #shoot-btn:active { 
+            background: rgba(255, 0, 85, 0.6); 
+        }
 
         #dash-btn {
-            position: absolute; bottom: 130px; right: 40px; width: 60px; height: 60px;
-            background: rgba(0, 255, 255, 0.2); border: 2px solid #0ff; border-radius: 50%;
-            color: #0ff; font-weight: bold; font-size: 12px; text-shadow: 0 0 5px #0ff;
-            box-shadow: 0 0 15px rgba(0,255,255,0.5); z-index: 10;
+            position: absolute; 
+            bottom: 130px; 
+            right: 40px; 
+            width: 60px; 
+            height: 60px;
+            background: rgba(0, 255, 255, 0.2); 
+            border: 2px solid #0ff; 
+            border-radius: 50%;
+            color: #0ff; 
+            font-weight: bold; 
+            font-size: 12px; 
+            text-shadow: 0 0 5px #0ff;
+            box-shadow: 0 0 15px rgba(0,255,255,0.5); 
+            z-index: 10;
         }
-        #dash-btn:active { background: rgba(0, 255, 255, 0.6); }
+
+        #dash-btn:active { 
+            background: rgba(0, 255, 255, 0.6); 
+        }
 
         /* Telas de Menu e Loja */
         .screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); z-index: 20;
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.85); 
+            backdrop-filter: blur(5px); 
+            z-index: 20;
         }
-        h1 { font-size: clamp(30px, 8vw, 60px); color: #0ff; text-shadow: 0 0 20px #0ff; margin-bottom: 10px; text-align: center;}
-        h2 { color: #ffcc00; text-shadow: 0 0 10px #ffcc00; }
+
+        h1 { 
+            font-size: clamp(30px, 8vw, 60px); 
+            color: #0ff; 
+            text-shadow: 0 0 20px #0ff; 
+            margin-bottom: 10px; 
+            text-align: center;
+        }
+
+        h2 { 
+            color: #ffcc00; 
+            text-shadow: 0 0 10px #ffcc00; 
+        }
         
-        .btn-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; }
+        .btn-container { 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 15px; 
+            margin-top: 20px; 
+        }
         
         .btn {
-            background: transparent; border: 2px solid #0ff; color: #0ff;
-            padding: 15px 30px; font-size: clamp(14px, 4vw, 20px); text-transform: uppercase; letter-spacing: 2px;
-            cursor: pointer; transition: 0.3s; font-weight: bold; font-family: inherit;
+            background: transparent; 
+            border: 2px solid #0ff; 
+            color: #0ff;
+            padding: 15px 30px; 
+            font-size: clamp(14px, 4vw, 20px); 
+            text-transform: uppercase; 
+            letter-spacing: 2px;
+            cursor: pointer; 
+            transition: 0.3s; 
+            font-weight: bold; 
+            font-family: inherit;
         }
-        .btn:hover, .btn:active { background: #0ff; color: #000; box-shadow: 0 0 20px #0ff; transform: scale(1.05); }
-        .btn-shop { border-color: #ff00ff; color: #ff00ff; }
-        .btn-shop:hover, .btn-shop:active { background: #ff00ff; color: #fff; box-shadow: 0 0 20px #ff00ff; }
-        
-        .credits { position: absolute; bottom: 20px; font-size: 12px; color: #555; letter-spacing: 3px; text-align: center; width: 100%;}
-        .credits span { color: #0ff; font-weight: bold; text-shadow: 0 0 5px #0ff; }
-        
-        /* Container da loja com scroll para caber tudo */
-        .shop-container {
-            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; 
-            margin-top: 15px; width: 90%; max-width: 450px;
-            max-height: 50vh; overflow-y: auto; overflow-x: hidden;
-        }
-        
-        .shop-item { margin: 8px 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;}
-        .shop-item span { font-size: 14px; }
-        .shop-item button { padding: 8px 12px; font-size: 11px; cursor: pointer; background: #222; color: #fff; border: 1px solid #555; transition: 0.2s;}
-        .shop-item button:hover, .shop-item button:active { border-color: #fff; }
-        
-        #shop-screen { display: none; }
 
-        /* Ajustes responsivos para celular na horizontal */
+        .btn:hover, .btn:active { 
+            background: #0ff; 
+            color: #000; 
+            box-shadow: 0 0 20px #0ff; 
+            transform: scale(1.05); 
+        }
+
+        .btn-shop { 
+            border-color: #ff00ff; 
+            color: #ff00ff; 
+        }
+
+        .btn-shop:hover, .btn-shop:active { 
+            background: #ff00ff; 
+            color: #fff; 
+            box-shadow: 0 0 20px #ff00ff; 
+        }
+        
+        .credits { 
+            position: absolute; 
+            bottom: 20px; 
+            font-size: 12px; 
+            color: #555; 
+            letter-spacing: 3px; 
+            text-align: center; 
+            width: 100%;
+        }
+
+        .credits span { 
+            color: #0ff; 
+            font-weight: bold; 
+            text-shadow: 0 0 5px #0ff; 
+        }
+        
+        /* Container da loja com scroll */
+        .shop-container {
+            background: rgba(255,255,255,0.05); 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin-top: 15px; 
+            width: 90%; 
+            max-width: 450px;
+            max-height: 50vh; 
+            overflow-y: auto; 
+            overflow-x: hidden;
+        }
+        
+        .shop-item { 
+            margin: 8px 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            gap: 10px; 
+            width: 100%;
+        }
+
+        .shop-item span { 
+            font-size: 14px; 
+        }
+
+        .shop-item button { 
+            padding: 8px 12px; 
+            font-size: 11px; 
+            cursor: pointer; 
+            background: #222; 
+            color: #fff; 
+            border: 1px solid #555; 
+            transition: 0.2s;
+        }
+
+        .shop-item button:hover, .shop-item button:active { 
+            border-color: #fff; 
+        }
+        
+        #shop-screen { 
+            display: none; 
+        }
+
         @media screen and (max-height: 500px) {
             h1 { font-size: clamp(20px, 6vw, 30px); margin-bottom: 5px; }
             #main-menu p:not(.credits) { margin-bottom: 5px !important; font-size: 12px; }
@@ -144,13 +326,34 @@
         <p style="font-size: 18px;">Neon Coins: <span id="coin-display" style="color:#ffcc00; font-weight:bold;">0</span></p>
         
         <div class="shop-container">
-            <div class="shop-item"><span style="color: #ff0055; flex: 1;">Cor: Rosa Chocante (50)</span><button id="btn-color-pink" onclick="buyItem('color', '#ff0055', 50, 'btn-color-pink')">COMPRAR</button></div>
-            <div class="shop-item"><span style="color: #00ff00; flex: 1;">Cor: Verde Tóxico (100)</span><button id="btn-color-green" onclick="buyItem('color', '#00ff00', 100, 'btn-color-green')">COMPRAR</button></div>
-            <div class="shop-item"><span style="color: #aaa; flex: 1;">Mapa: Cyber Grid (200)</span><button id="btn-map-grid" onclick="buyItem('map', 'grid', 200, 'btn-map-grid')">COMPRAR</button></div>
+            <div class="shop-item">
+                <span style="color: #ff0055; flex: 1;">Cor: Rosa Chocante (50)</span>
+                <button id="btn-color-pink" onclick="buyItem('color', '#ff0055', 50, 'btn-color-pink')">COMPRAR</button>
+            </div>
+            <div class="shop-item">
+                <span style="color: #00ff00; flex: 1;">Cor: Verde Tóxico (100)</span>
+                <button id="btn-color-green" onclick="buyItem('color', '#00ff00', 100, 'btn-color-green')">COMPRAR</button>
+            </div>
+            
+            <div class="shop-item">
+                <span style="color: #aaa; flex: 1;">Mapa: Cyber Grid (200)</span>
+                <button id="btn-map-grid" onclick="buyItem('map', 'grid', 200, 'btn-map-grid')">COMPRAR</button>
+            </div>
+            
             <hr style="border-color: #333; margin: 10px 0;">
-            <div class="shop-item"><span style="color: #ff9900; flex: 1;">Música: Funk (Grátis)</span><button id="btn-music-funk" onclick="buyItem('music', 'funk.mp3', 0, 'btn-music-funk')">EQUIPAR</button></div>
-            <div class="shop-item"><span style="color: #ff9900; flex: 1;">Música: Eletrônica (150)</span><button id="btn-music-eletro" onclick="buyItem('music', 'eletronica.mp3', 150, 'btn-music-eletro')">COMPRAR</button></div>
-            <div class="shop-item"><span style="color: #ff9900; flex: 1;">Música: Rock (300)</span><button id="btn-music-rock" onclick="buyItem('music', 'rock.mp3', 300, 'btn-music-rock')">COMPRAR</button></div>
+            
+            <div class="shop-item">
+                <span style="color: #ff9900; flex: 1;">Música: Funk 1 (Grátis)</span>
+                <button id="btn-music-funk" onclick="buyItem('music', 'funk.mp3', 0, 'btn-music-funk')">EQUIPAR</button>
+            </div>
+            <div class="shop-item">
+                <span style="color: #ff9900; flex: 1;">Música: Funk 2 (150)</span>
+                <button id="btn-music-funk2" onclick="buyItem('music', 'funk2.mp3', 150, 'btn-music-funk2')">COMPRAR</button>
+            </div>
+            <div class="shop-item">
+                <span style="color: #ff9900; flex: 1;">Música: Forró do Piseiro (300)</span>
+                <button id="btn-music-forro1" onclick="buyItem('music', 'forro1.mp3', 300, 'btn-music-forro1')">COMPRAR</button>
+            </div>
         </div>
 
         <button class="btn" style="margin-top: 20px;" onclick="closeShop()">VOLTAR AO MENU</button>
@@ -159,7 +362,9 @@
     <div id="ui">
         <div style="font-size: 24px; color: #0ff;">Kills: <span id="kills">0</span></div>
         <div class="lvl">LEVEL <span id="lvl-num">1</span></div>
-        <div class="bar-container"><div id="xp-bar"></div></div>
+        <div class="bar-container">
+            <div id="xp-bar"></div>
+        </div>
         <div id="pc-instructions">
             WASD: Mover | MOUSE: Atirar | ESPAÇO: DASH <br>
             <span style="color: #ffcc00;">Pegue os cristais amarelos para subir de nível!</span>
@@ -175,8 +380,15 @@
 
 <script>
 // --- ANTI-ZOOM PARA iPHONE (SAFARI iOS) ---
-document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
-document.addEventListener('touchmove', function(e) { if(e.scale !== 1) { e.preventDefault(); } }, {passive: false});
+document.addEventListener('gesturestart', function (e) { 
+    e.preventDefault(); 
+});
+
+document.addEventListener('touchmove', function(e) { 
+    if(e.scale !== 1) { 
+        e.preventDefault(); 
+    } 
+}, {passive: false});
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -193,30 +405,77 @@ const bgMusic = document.getElementById('bg-music');
 // --- SISTEMA DE SAVE ATUALIZADO (Com Músicas) ---
 let saveData = JSON.parse(localStorage.getItem('ultraNeonSave')) || {
     coins: 0, 
-    unlockedColors: ['#0ff'], currentColor: '#0ff', 
-    unlockedMaps: ['default'], currentMap: 'default',
-    unlockedMusic: ['funk.mp3'], currentMusic: 'funk.mp3'
+    unlockedColors: ['#0ff'], 
+    currentColor: '#0ff', 
+    unlockedMaps: ['default'], 
+    currentMap: 'default',
+    unlockedMusic: ['funk.mp3'], 
+    currentMusic: 'funk.mp3'
 };
-// Garante que se o save antigo não tiver música, ele cria agora
-if(!saveData.unlockedMusic) { saveData.unlockedMusic = ['funk.mp3']; saveData.currentMusic = 'funk.mp3'; }
 
-function saveGame() { localStorage.setItem('ultraNeonSave', JSON.stringify(saveData)); }
+if(!saveData.unlockedMusic) { 
+    saveData.unlockedMusic = ['funk.mp3']; 
+    saveData.currentMusic = 'funk.mp3'; 
+}
+
+function saveGame() { 
+    localStorage.setItem('ultraNeonSave', JSON.stringify(saveData)); 
+}
 
 let gameState = 'MENU';
 let isMobile = false;
-let player = { x: 0, y: 0, size: 12, speed: 4, level: 1, xp: 0, nextLvl: 10, dashing: 0 };
-let projectiles = [], enemies = [], particles = [], collectibles = [], shake = 0, kills = 0, keys = {};
+let player = { 
+    x: 0, 
+    y: 0, 
+    size: 12, 
+    speed: 4, 
+    level: 1, 
+    xp: 0, 
+    nextLvl: 10, 
+    dashing: 0 
+};
+
+// Variáveis do Bot Ajudante
+let bot = {
+    active: false,
+    x: 0,
+    y: 0,
+    angle: 0,
+    shootTimer: 0
+};
+
+let projectiles = [];
+let enemies = [];
+let particles = [];
+let collectibles = [];
+let shake = 0;
+let kills = 0;
+let keys = {};
 let mouse = { x: 0, y: 0 };
+
 let isShootingMobile = false;
 let autoShootTimer = 0;
-let joystick = { active: false, id: null, startX: 0, startY: 0, currentX: 0, currentY: 0, dx: 0, dy: 0, maxRadius: 50 };
+
+let joystick = { 
+    active: false, 
+    id: null, 
+    startX: 0, 
+    startY: 0, 
+    currentX: 0, 
+    currentY: 0, 
+    dx: 0, 
+    dy: 0, 
+    maxRadius: 50 
+};
 let joystickVisualBase = { x: 100, y: 0 };
 
 // Controles PC
-window.onkeydown = e => keys[e.code] = true;
-window.onkeyup = e => keys[e.code] = false;
-window.onmousemove = e => { mouse.x = e.clientX; mouse.y = e.clientY; };
-window.onmousedown = () => { if(gameState === 'PLAYING' && !isMobile) shoot(mouse.x, mouse.y); };
+window.onkeydown = function(e) { keys[e.code] = true; };
+window.onkeyup = function(e) { keys[e.code] = false; };
+window.onmousemove = function(e) { mouse.x = e.clientX; mouse.y = e.clientY; };
+window.onmousedown = function() { 
+    if(gameState === 'PLAYING' && !isMobile) shoot(mouse.x, mouse.y, player.x, player.y, player.level); 
+};
 
 // Ajuste de Tela
 function ajustarTela() {
@@ -225,47 +484,89 @@ function ajustarTela() {
     joystickVisualBase.y = window.innerHeight - 100;
 }
 window.addEventListener('resize', ajustarTela);
-window.addEventListener('orientationchange', () => { setTimeout(ajustarTela, 200); });
-ajustarTela(); // Chama logo no começo
+window.addEventListener('orientationchange', function() { 
+    setTimeout(ajustarTela, 200); 
+});
+ajustarTela();
 
 // Controles Mobile
-canvas.addEventListener('touchstart', e => {
+canvas.addEventListener('touchstart', function(e) {
     if (gameState !== 'PLAYING' || !isMobile) return;
-    for(let i=0; i<e.changedTouches.length; i++) {
+    for(let i = 0; i < e.changedTouches.length; i++) {
         let t = e.changedTouches[i];
         if(t.clientX < canvas.width / 2 && !joystick.active) {
-            joystick.active = true; joystick.id = t.identifier;
-            joystick.startX = t.clientX; joystick.startY = t.clientY;
-            joystick.currentX = t.clientX; joystick.currentY = t.clientY;
-            joystick.dx = 0; joystick.dy = 0;
+            joystick.active = true; 
+            joystick.id = t.identifier;
+            joystick.startX = t.clientX; 
+            joystick.startY = t.clientY;
+            joystick.currentX = t.clientX; 
+            joystick.currentY = t.clientY;
+            joystick.dx = 0; 
+            joystick.dy = 0;
         }
     }
 });
-canvas.addEventListener('touchmove', e => {
+
+canvas.addEventListener('touchmove', function(e) {
     if (!joystick.active) return;
-    for(let i=0; i<e.changedTouches.length; i++) {
+    for(let i = 0; i < e.changedTouches.length; i++) {
         let t = e.changedTouches[i];
         if(t.identifier === joystick.id) {
-            joystick.currentX = t.clientX; joystick.currentY = t.clientY;
+            joystick.currentX = t.clientX; 
+            joystick.currentY = t.clientY;
             let angle = Math.atan2(joystick.currentY - joystick.startY, joystick.currentX - joystick.startX);
             let dist = Math.hypot(joystick.currentX - joystick.startX, joystick.currentY - joystick.startY);
+            
             if(dist > joystick.maxRadius) {
-                joystick.dx = Math.cos(angle) * joystick.maxRadius; joystick.dy = Math.sin(angle) * joystick.maxRadius;
+                joystick.dx = Math.cos(angle) * joystick.maxRadius; 
+                joystick.dy = Math.sin(angle) * joystick.maxRadius;
             } else {
-                joystick.dx = joystick.currentX - joystick.startX; joystick.dy = joystick.currentY - joystick.startY;
+                joystick.dx = joystick.currentX - joystick.startX; 
+                joystick.dy = joystick.currentY - joystick.startY;
             }
         }
     }
 });
-canvas.addEventListener('touchend', e => {
-    for(let i=0; i<e.changedTouches.length; i++) { if(e.changedTouches[i].identifier === joystick.id) { joystick.active = false; joystick.dx = 0; joystick.dy = 0; } }
-});
-canvas.addEventListener('touchcancel', () => { joystick.active = false; joystick.dx = 0; joystick.dy = 0; });
 
-dashBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if(player.dashing <= 0) player.dashing = 20; });
-shootBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if (gameState === 'PLAYING') { isShootingMobile = true; autoShootMobile(); autoShootTimer = 0; } });
-shootBtn.addEventListener('touchend', (e) => { e.preventDefault(); isShootingMobile = false; });
-shootBtn.addEventListener('touchcancel', (e) => { e.preventDefault(); isShootingMobile = false; });
+canvas.addEventListener('touchend', function(e) {
+    for(let i = 0; i < e.changedTouches.length; i++) { 
+        if(e.changedTouches[i].identifier === joystick.id) { 
+            joystick.active = false; 
+            joystick.dx = 0; 
+            joystick.dy = 0; 
+        } 
+    }
+});
+
+canvas.addEventListener('touchcancel', function() { 
+    joystick.active = false; 
+    joystick.dx = 0; 
+    joystick.dy = 0; 
+});
+
+dashBtn.addEventListener('touchstart', function(e) { 
+    e.preventDefault(); 
+    if(player.dashing <= 0) player.dashing = 20; 
+});
+
+shootBtn.addEventListener('touchstart', function(e) { 
+    e.preventDefault(); 
+    if (gameState === 'PLAYING') { 
+        isShootingMobile = true; 
+        autoShootMobile(); 
+        autoShootTimer = 0; 
+    } 
+});
+
+shootBtn.addEventListener('touchend', function(e) { 
+    e.preventDefault(); 
+    isShootingMobile = false; 
+});
+
+shootBtn.addEventListener('touchcancel', function(e) { 
+    e.preventDefault(); 
+    isShootingMobile = false; 
+});
 
 // --- FUNÇÕES GERAIS E MÚSICA ---
 function startGame(mobileMode) {
@@ -274,7 +575,7 @@ function startGame(mobileMode) {
     mainMenu.style.display = 'none';
     ui.style.display = 'block';
 
-    // Toca a música escolhida (funciona no PC agora porque é forçado no click)
+    // Inicia a música baseada no Save Data
     bgMusic.src = saveData.currentMusic;
     bgMusic.volume = 0.5;
     bgMusic.load();
@@ -288,11 +589,12 @@ function startGame(mobileMode) {
         pcInstructions.style.display = 'none';
         mobileUI.style.display = 'block';
 
-        // Tenta Fullscreen (O iPhone vai ignorar isso e tudo bem, não vai quebrar)
         let elem = document.documentElement;
         if (elem.requestFullscreen) {
             elem.requestFullscreen().then(() => {
-                if(screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(e => {});
+                if(screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(e => {});
+                }
             }).catch(e => {});
         }
     } else {
@@ -302,56 +604,94 @@ function startGame(mobileMode) {
     }
     
     ajustarTela();
-    player = { x: canvas.width/2, y: canvas.height/2, size: 12, speed: 4, level: 1, xp: 0, nextLvl: 10, dashing: 0 };
-    projectiles = []; enemies = []; particles = []; collectibles = [];
-    kills = 0; document.getElementById('kills').innerText = kills;
+    
+    player = { x: canvas.width / 2, y: canvas.height / 2, size: 12, speed: 4, level: 1, xp: 0, nextLvl: 10, dashing: 0 };
+    bot = { active: false, x: player.x, y: player.y, angle: 0, shootTimer: 0 };
+    
+    projectiles = []; 
+    enemies = []; 
+    particles = []; 
+    collectibles = [];
+    kills = 0; 
+    
+    document.getElementById('kills').innerText = kills;
     document.getElementById('xp-bar').style.width = "0%";
     document.getElementById('lvl-num').innerText = 1;
-    joystick.active = false; joystick.dx = 0; joystick.dy = 0; isShootingMobile = false;
+    
+    joystick.active = false; joystick.dx = 0; joystick.dy = 0; 
+    isShootingMobile = false;
 }
 
 function gameOver() {
     gameState = 'MENU';
-    ui.style.display = 'none'; mobileUI.style.display = 'none'; mainMenu.style.display = 'flex';
+    ui.style.display = 'none'; 
+    mobileUI.style.display = 'none'; 
+    mainMenu.style.display = 'flex';
     document.body.classList.remove('mobile-playing');
+    
     bgMusic.pause(); 
-    saveData.coins += kills; saveGame(); isShootingMobile = false;
-    if (document.fullscreenElement) { document.exitFullscreen().catch(e => {}); } 
+    
+    saveData.coins += kills; 
+    saveGame(); 
+    isShootingMobile = false;
+    
+    if (document.fullscreenElement) { 
+        document.exitFullscreen().catch(e => {}); 
+    } 
 }
 
 // --- LOJA ---
-function openShop() { mainMenu.style.display = 'none'; shopScreen.style.display = 'flex'; updateShopUI(); }
-function closeShop() { shopScreen.style.display = 'none'; mainMenu.style.display = 'flex'; }
+function openShop() { 
+    mainMenu.style.display = 'none'; 
+    shopScreen.style.display = 'flex'; 
+    updateShopUI(); 
+}
+
+function closeShop() { 
+    shopScreen.style.display = 'none'; 
+    mainMenu.style.display = 'flex'; 
+}
 
 function updateShopUI() {
     coinDisplay.innerText = saveData.coins;
+    
     checkButtonState('color', '#ff0055', 'btn-color-pink');
     checkButtonState('color', '#00ff00', 'btn-color-green');
     checkButtonState('map', 'grid', 'btn-map-grid');
+    
+    // Verificações das músicas na loja
     checkButtonState('music', 'funk.mp3', 'btn-music-funk');
-    checkButtonState('music', 'eletronica.mp3', 'btn-music-eletro');
-    checkButtonState('music', 'rock.mp3', 'btn-music-rock');
+    checkButtonState('music', 'funk2.mp3', 'btn-music-funk2');
+    checkButtonState('music', 'forro1.mp3', 'btn-music-forro1');
 }
 
 function checkButtonState(type, value, btnId) {
     const btn = document.getElementById(btnId);
-    let unlocked = false, equipped = false;
+    let unlocked = false;
+    let equipped = false;
     
     if (type === 'color') { unlocked = saveData.unlockedColors.includes(value); equipped = saveData.currentColor === value; }
     if (type === 'map') { unlocked = saveData.unlockedMaps.includes(value); equipped = saveData.currentMap === value; }
     if (type === 'music') { unlocked = saveData.unlockedMusic.includes(value); equipped = saveData.currentMusic === value; }
 
     if (equipped) {
-        btn.innerText = "EQUIPADO"; btn.style.background = "#0ff"; btn.style.color = "#000";
+        btn.innerText = "EQUIPADO"; 
+        btn.style.background = "#0ff"; 
+        btn.style.color = "#000";
     } else if (unlocked) {
-        btn.innerText = "EQUIPAR"; btn.style.background = "#222"; btn.style.color = "#fff";
+        btn.innerText = "EQUIPAR"; 
+        btn.style.background = "#222"; 
+        btn.style.color = "#fff";
     } else {
-        btn.innerText = "COMPRAR"; btn.style.background = "#222"; btn.style.color = "#fff";
+        btn.innerText = "COMPRAR"; 
+        btn.style.background = "#222"; 
+        btn.style.color = "#fff";
     }
 }
 
 function buyItem(type, value, cost, btnId) {
     let unlocked = false;
+    
     if (type === 'color') unlocked = saveData.unlockedColors.includes(value);
     if (type === 'map') unlocked = saveData.unlockedMaps.includes(value);
     if (type === 'music') unlocked = saveData.unlockedMusic.includes(value);
@@ -368,49 +708,88 @@ function buyItem(type, value, cost, btnId) {
             if (type === 'map') { saveData.unlockedMaps.push(value); saveData.currentMap = value; }
             if (type === 'music') { saveData.unlockedMusic.push(value); saveData.currentMusic = value; }
             saveGame();
-        } else alert("Moedas insuficientes! Derrote mais inimigos.");
+        } else {
+            alert("Moedas insuficientes! Derrote mais inimigos.");
+        }
     }
     updateShopUI();
 }
 
 // --- LÓGICA DE JOGO ---
-function shoot(targetX, targetY) {
-    const angle = Math.atan2(targetY - player.y, targetX - player.x);
-    const count = Math.min(player.level, 7); 
+function shoot(targetX, targetY, originX, originY, levelCount) {
+    const angle = Math.atan2(targetY - originY, targetX - originX);
+    const count = Math.min(levelCount, 7); 
     const spread = 0.2;
+    
     for(let i = 0; i < count; i++) {
-        const offset = (i - (count-1)/2) * spread;
-        projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle + offset) * 12, vy: Math.sin(angle + offset) * 12 });
+        const offset = (i - (count - 1) / 2) * spread;
+        projectiles.push({ 
+            x: originX, 
+            y: originY, 
+            vx: Math.cos(angle + offset) * 12, 
+            vy: Math.sin(angle + offset) * 12 
+        });
     }
-    shake = 3;
+    if(originX === player.x) shake = 3;
 }
 
 function autoShootMobile() {
     if (enemies.length === 0) return;
-    let closestEnemy = null; let minDistance = Infinity;
+    
+    let closestEnemy = null; 
+    let minDistance = Infinity;
+    
     enemies.forEach(en => {
         let dist = Math.hypot(player.x - en.x, player.y - en.y);
-        if (dist < minDistance) { minDistance = dist; closestEnemy = en; }
+        if (dist < minDistance) { 
+            minDistance = dist; 
+            closestEnemy = en; 
+        }
     });
-    if (closestEnemy && minDistance < Math.max(canvas.width, canvas.height)) { shoot(closestEnemy.x, closestEnemy.y); }
+    
+    if (closestEnemy && minDistance < Math.max(canvas.width, canvas.height)) { 
+        shoot(closestEnemy.x, closestEnemy.y, player.x, player.y, player.level); 
+    }
 }
 
-function spawnEnemy() {
+function spawnEnemy(isBoss = false) {
     const side = Math.floor(Math.random() * 4);
     let x, y;
-    if(side == 0) { x = Math.random()*canvas.width; y = -50; }
-    if(side == 1) { x = Math.random()*canvas.width; y = canvas.height+50; }
-    if(side == 2) { x = -50; y = Math.random()*canvas.height; }
-    if(side == 3) { x = canvas.width+50; y = Math.random()*canvas.height; }
-    enemies.push({ x, y, size: 15 + Math.random()*20, speed: 1 + Math.random() * (player.level*0.2) });
+    
+    if(side == 0) { x = Math.random() * canvas.width; y = -50; }
+    if(side == 1) { x = Math.random() * canvas.width; y = canvas.height + 50; }
+    if(side == 2) { x = -50; y = Math.random() * canvas.height; }
+    if(side == 3) { x = canvas.width + 50; y = Math.random() * canvas.height; }
+    
+    if (isBoss) {
+        enemies.push({ 
+            x: x, y: y, 
+            size: 40, speed: 1.5, hp: 15, isBoss: true, hitEffect: 0
+        });
+    } else {
+        enemies.push({ 
+            x: x, y: y, 
+            size: 15 + Math.random() * 20, speed: 1 + Math.random() * (player.level * 0.2), hp: 1, isBoss: false, hitEffect: 0
+        });
+    }
 }
 
-function gainXP() {
-    player.xp++;
+function gainXP(amount = 1) {
+    player.xp += amount;
     if(player.xp >= player.nextLvl) {
-        player.level++; player.xp = 0; player.nextLvl += 5;
-        document.getElementById('lvl-num').innerText = player.level; shake = 15;
-        for(let j=0; j<30; j++) particles.push({ x: player.x, y: player.y, vx: (Math.random()-0.5)*20, vy: (Math.random()-0.5)*20, alpha: 1, color: saveData.currentColor });
+        player.level++; 
+        player.xp = 0; 
+        player.nextLvl += 5;
+        document.getElementById('lvl-num').innerText = player.level; 
+        shake = 15;
+        
+        for(let j = 0; j < 30; j++) {
+            particles.push({ 
+                x: player.x, y: player.y, 
+                vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20, 
+                alpha: 1, color: saveData.currentColor 
+            });
+        }
     }
     document.getElementById('xp-bar').style.width = (player.xp / player.nextLvl * 100) + "%";
 }
@@ -418,9 +797,15 @@ function gainXP() {
 function update() {
     if (gameState !== 'PLAYING') return;
 
-    if(keys['Space'] && !isMobile && player.dashing <= 0) player.dashing = 20;
+    if(keys['Space'] && !isMobile && player.dashing <= 0) {
+        player.dashing = 20;
+    }
+    
     let currentSpeed = player.dashing > 10 ? player.speed * 4 : player.speed;
-    if(player.dashing > 0) player.dashing--;
+    
+    if(player.dashing > 0) {
+        player.dashing--;
+    }
 
     if (isMobile && joystick.active) {
         let force = Math.min(Math.hypot(joystick.dx, joystick.dy) / joystick.maxRadius, 1);
@@ -437,103 +822,244 @@ function update() {
     player.x = Math.max(player.size, Math.min(canvas.width - player.size, player.x));
     player.y = Math.max(player.size, Math.min(canvas.height - player.size, player.y));
 
+    // Lógica do Bot Ajudante
+    if (bot.active) {
+        // Orbitar jogador
+        bot.angle += 0.05;
+        let targetX = player.x + Math.cos(bot.angle) * 50;
+        let targetY = player.y + Math.sin(bot.angle) * 50;
+        bot.x += (targetX - bot.x) * 0.1;
+        bot.y += (targetY - bot.y) * 0.1;
+
+        bot.shootTimer++;
+        if (bot.shootTimer > 40 && enemies.length > 0) {
+            let closest = null;
+            let minDist = Infinity;
+            enemies.forEach(en => {
+                let dist = Math.hypot(bot.x - en.x, bot.y - en.y);
+                if (dist < minDist) { minDist = dist; closest = en; }
+            });
+            if (closest) shoot(closest.x, closest.y, bot.x, bot.y, 1);
+            bot.shootTimer = 0;
+        }
+    }
+
     if (isMobile && isShootingMobile) {
         autoShootTimer++;
-        if (autoShootTimer >= 10) { autoShootMobile(); autoShootTimer = 0; }
+        if (autoShootTimer >= 10) { 
+            autoShootMobile(); 
+            autoShootTimer = 0; 
+        }
     }
 
     collectibles.forEach((c, i) => {
         let dist = Math.hypot(player.x - c.x, player.y - c.y);
         if(dist < 80 + (player.level * 2)) {
             const angle = Math.atan2(player.y - c.y, player.x - c.x);
-            c.x += Math.cos(angle) * 8; c.y += Math.sin(angle) * 8;
+            c.x += Math.cos(angle) * 8; 
+            c.y += Math.sin(angle) * 8;
         }
-        if(dist < player.size + c.size) { collectibles.splice(i, 1); gainXP(); }
+        if(dist < player.size + c.size) { 
+            collectibles.splice(i, 1); 
+            gainXP(c.xpValue || 1); 
+        }
     });
 
     projectiles.forEach((p, i) => {
-        p.x += p.vx; p.y += p.vy;
-        if(p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) projectiles.splice(i, 1);
+        p.x += p.vx; 
+        p.y += p.vy;
+        if(p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+            projectiles.splice(i, 1);
+        }
     });
 
     enemies.forEach((en, i) => {
         const angle = Math.atan2(player.y - en.y, player.x - en.x);
-        en.x += Math.cos(angle) * en.speed; en.y += Math.sin(angle) * en.speed;
+        en.x += Math.cos(angle) * en.speed; 
+        en.y += Math.sin(angle) * en.speed;
+        
+        if(en.hitEffect > 0) en.hitEffect--;
 
-        if(Math.hypot(player.x - en.x, player.y - en.y) < en.size && player.dashing < 10) gameOver();
+        // Dano no Player (Game Over)
+        if(Math.hypot(player.x - en.x, player.y - en.y) < en.size && player.dashing < 10) {
+            gameOver();
+        }
 
+        // Colisão Tiro vs Inimigo
         projectiles.forEach((p, pi) => {
             if(Math.hypot(p.x - en.x, p.y - en.y) < en.size) {
-                collectibles.push({ x: en.x, y: en.y, size: 6 });
-                enemies.splice(i, 1); projectiles.splice(pi, 1);
-                kills++; document.getElementById('kills').innerText = kills; shake = 5;
-                for(let j=0; j<10; j++) particles.push({ x: en.x, y: en.y, vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15, alpha: 1, color: '#ff0055' });
+                en.hp--;
+                en.hitEffect = 5;
+                projectiles.splice(pi, 1);
+                
+                if (en.hp <= 0) {
+                    // Morte do inimigo / Boss
+                    if (en.isBoss) {
+                        collectibles.push({ x: en.x, y: en.y, size: 15, xpValue: 10 }); // Boss dá muito XP
+                        bot.active = true; // Libera o ajudante
+                        bot.x = en.x; bot.y = en.y;
+                    } else {
+                        collectibles.push({ x: en.x, y: en.y, size: 6, xpValue: 1 });
+                    }
+                    
+                    enemies.splice(i, 1); 
+                    kills++; 
+                    document.getElementById('kills').innerText = kills; 
+                    shake = en.isBoss ? 20 : 5;
+                    
+                    for(let j = 0; j < (en.isBoss ? 30 : 10); j++) {
+                        particles.push({ 
+                            x: en.x, y: en.y, 
+                            vx: (Math.random() - 0.5) * 15, vy: (Math.random() - 0.5) * 15, 
+                            alpha: 1, color: en.isBoss ? '#fff' : '#ff0055' 
+                        });
+                    }
+                }
             }
         });
     });
 
-    if(Math.random() < 0.05 + (player.level * 0.01)) spawnEnemy();
+    // --- NOVA LÓGICA DE SPAWN ---
+    let spawnChance = 0.01 + (kills * 0.001);
+    if(spawnChance > 0.10) spawnChance = 0.10; 
+    
+    if(Math.random() < spawnChance) {
+        spawnEnemy(false);
+    }
+    
+    // SPAWN DO BOSS (Infrequente, requer level 5+)
+    if (player.level >= 5 && Math.random() < 0.002) {
+        let bossExists = enemies.some(e => e.isBoss);
+        if (!bossExists) spawnEnemy(true);
+    }
 }
 
 function draw() {
     if (saveData.currentMap === 'grid') {
-        ctx.fillStyle = 'rgba(0, 10, 20, 0.4)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = 'rgba(0, 255, 255, 0.05)'; ctx.lineWidth = 1; ctx.beginPath();
-        for(let i=0; i<canvas.width; i+=50) { ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); }
-        for(let i=0; i<canvas.height; i+=50) { ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); }
+        ctx.fillStyle = 'rgba(0, 10, 20, 0.4)'; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.05)'; 
+        ctx.lineWidth = 1; 
+        ctx.beginPath();
+        for(let i = 0; i < canvas.width; i += 50) { ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); }
+        for(let i = 0; i < canvas.height; i += 50) { ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); }
         ctx.stroke();
     } else {
-        ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'rgba(0,0,0,0.3)'; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
     ctx.save();
-    if(shake > 0) { ctx.translate(Math.random()*shake, Math.random()*shake); shake *= 0.9; }
+    
+    if(shake > 0) { 
+        ctx.translate(Math.random() * shake, Math.random() * shake); 
+        shake *= 0.9; 
+    }
 
     particles.forEach((p, i) => {
         p.x += p.vx; p.y += p.vy; p.alpha -= 0.03;
         if(p.alpha <= 0) particles.splice(i, 1);
-        ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 3, 3);
+        
+        ctx.globalAlpha = p.alpha; 
+        ctx.fillStyle = p.color; 
+        ctx.fillRect(p.x, p.y, 3, 3);
     });
 
     if (gameState === 'PLAYING') {
-        ctx.shadowBlur = 10; ctx.shadowColor = '#ffcc00'; ctx.fillStyle = '#ffcc00';
+        ctx.shadowBlur = 10; 
+        
+        // XP Collectibles
         collectibles.forEach(c => {
-            ctx.beginPath(); ctx.moveTo(c.x, c.y - c.size); ctx.lineTo(c.x + c.size, c.y);
-            ctx.lineTo(c.x, c.y + c.size); ctx.lineTo(c.x - c.size, c.y); ctx.fill();
+            ctx.shadowColor = c.xpValue > 1 ? '#0ff' : '#ffcc00'; 
+            ctx.fillStyle = c.xpValue > 1 ? '#0ff' : '#ffcc00';
+            ctx.beginPath(); 
+            ctx.moveTo(c.x, c.y - c.size); 
+            ctx.lineTo(c.x + c.size, c.y);
+            ctx.lineTo(c.x, c.y + c.size); 
+            ctx.lineTo(c.x - c.size, c.y); 
+            ctx.fill();
         });
 
-        ctx.shadowBlur = 15; ctx.shadowColor = saveData.currentColor;
+        // Player
+        ctx.shadowBlur = 15; 
+        ctx.shadowColor = saveData.currentColor;
         ctx.fillStyle = player.dashing > 10 ? '#fff' : saveData.currentColor;
-        ctx.beginPath(); ctx.arc(player.x, player.y, player.size, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); 
+        ctx.arc(player.x, player.y, player.size, 0, Math.PI * 2); 
+        ctx.fill();
 
+        // Bot Ajudante
+        if (bot.active) {
+            ctx.shadowColor = '#0ff';
+            ctx.fillStyle = '#0ff';
+            ctx.beginPath();
+            ctx.arc(bot.x, bot.y, 6, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Enemies & Boss
         enemies.forEach(en => {
-            ctx.shadowColor = '#ff0055'; ctx.fillStyle = '#ff0055'; ctx.beginPath();
-            ctx.moveTo(en.x, en.y - en.size); ctx.lineTo(en.x - en.size, en.y + en.size);
-            ctx.lineTo(en.x + en.size, en.y + en.size); ctx.fill();
+            ctx.shadowColor = en.isBoss ? '#ff00ff' : '#ff0055'; 
+            ctx.fillStyle = en.hitEffect > 0 ? '#ffffff' : (en.isBoss ? '#220022' : '#ff0055'); 
+            
+            ctx.beginPath();
+            if (en.isBoss) {
+                // Desenha o Boss (Losango Estilizado)
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = en.hitEffect > 0 ? '#fff' : '#ff00ff';
+                ctx.moveTo(en.x, en.y - en.size); 
+                ctx.lineTo(en.x + en.size, en.y);
+                ctx.lineTo(en.x, en.y + en.size); 
+                ctx.lineTo(en.x - en.size, en.y); 
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            } else {
+                ctx.moveTo(en.x, en.y - en.size); 
+                ctx.lineTo(en.x - en.size, en.y + en.size);
+                ctx.lineTo(en.x + en.size, en.y + en.size); 
+                ctx.fill();
+            }
         });
 
-        ctx.shadowColor = '#fff'; ctx.fillStyle = '#fff';
-        projectiles.forEach(p => ctx.fillRect(p.x, p.y, 4, 4));
-    } else if(Math.random() < 0.1) {
-        particles.push({ x: Math.random()*canvas.width, y: canvas.height+10, vx: (Math.random()-0.5)*2, vy: -Math.random()*5, alpha: 1, color: '#0ff' });
+        // Tiros
+        ctx.shadowColor = '#fff'; 
+        ctx.fillStyle = '#fff';
+        projectiles.forEach(p => {
+            ctx.fillRect(p.x, p.y, 4, 4);
+        });
+        
+    } else if(Math.random() < 0.1) { // Efeitos no menu
+        particles.push({ 
+            x: Math.random() * canvas.width, y: canvas.height + 10, 
+            vx: (Math.random() - 0.5) * 2, vy: -Math.random() * 5, 
+            alpha: 1, color: '#0ff' 
+        });
     }
     
     ctx.restore();
 
     if (gameState === 'PLAYING' && isMobile) {
-        ctx.globalAlpha = 0.2; ctx.fillStyle = '#0ff';
+        ctx.globalAlpha = 0.2; 
+        ctx.fillStyle = '#0ff';
+        
         if (joystick.active) {
-            ctx.beginPath(); ctx.arc(joystick.startX, joystick.startY, joystick.maxRadius, 0, Math.PI*2); ctx.fill();
-            ctx.globalAlpha = 0.6; ctx.beginPath(); ctx.arc(joystick.startX + joystick.dx, joystick.startY + joystick.dy, 20, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(joystick.startX, joystick.startY, joystick.maxRadius, 0, Math.PI * 2); ctx.fill();
+            ctx.globalAlpha = 0.6; 
+            ctx.beginPath(); ctx.arc(joystick.startX + joystick.dx, joystick.startY + joystick.dy, 20, 0, Math.PI * 2); ctx.fill();
         } else {
-            ctx.beginPath(); ctx.arc(joystickVisualBase.x, joystickVisualBase.y, joystick.maxRadius, 0, Math.PI*2); ctx.fill();
-            ctx.globalAlpha = 0.6; ctx.beginPath(); ctx.arc(joystickVisualBase.x, joystickVisualBase.y, 20, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(joystickVisualBase.x, joystickVisualBase.y, joystick.maxRadius, 0, Math.PI * 2); ctx.fill();
+            ctx.globalAlpha = 0.6; 
+            ctx.beginPath(); ctx.arc(joystickVisualBase.x, joystickVisualBase.y, 20, 0, Math.PI * 2); ctx.fill();
         }
         ctx.globalAlpha = 1.0;
     }
 
-    update(); requestAnimationFrame(draw);
+    update(); 
+    requestAnimationFrame(draw);
 }
+
 draw();
 </script>
 </body>
